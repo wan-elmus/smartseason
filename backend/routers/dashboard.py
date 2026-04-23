@@ -49,8 +49,12 @@ async def admin_dashboard(
         
         if status == "At Risk" and len(at_risk_fields) < 10:
             last_update = None
+            days_planted = None
+            days_update = None
             if field.updates:
                 last_update = max(field.updates, key=lambda u: u.created_at).created_at
+            
+            _, days_planted, days_update = compute_field_status(field)
             
             at_risk_fields.append(FieldWithStatus(
                 id=field.id,
@@ -59,8 +63,8 @@ async def admin_dashboard(
                 planting_date=field.planting_date,
                 current_stage=field.current_stage,
                 computed_status="At Risk",
-                days_since_planting=None,
-                days_since_last_update=None,
+                days_since_planting=days_planted,
+                days_since_last_update=days_update,
                 last_update=last_update,
                 created_by=field.created_by,
                 created_at=field.created_at,

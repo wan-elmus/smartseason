@@ -23,6 +23,7 @@ class Settings(BaseSettings):
     POSTGRES_DB: str
     POSTGRES_USER: str
     POSTGRES_PASSWORD: str
+    DATABASE_SSL_MODE: str = "require"
 
     # JWT / Auth
     JWT_SECRET: str
@@ -40,18 +41,20 @@ class Settings(BaseSettings):
     @property
     def DATABASE_URL(self) -> str:
         """Async URL for asyncpg driver"""
-        return (
-            f"postgresql+asyncpg://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}"
-            f"@{self.POSTGRES_HOST}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
-        )
+        base_url = f"postgresql+asyncpg://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@{self.POSTGRES_HOST}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
+        
+        if hasattr(self, 'DATABASE_SSL_MODE') and self.DATABASE_SSL_MODE:
+            return f"{base_url}?ssl={self.DATABASE_SSL_MODE}"
+        return base_url
 
     @property
     def DATABASE_URL_SYNC(self) -> str:
         """Sync URL for psycopg2 driver (migrations)"""
-        return (
-            f"postgresql://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}"
-            f"@{self.POSTGRES_HOST}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
-        )
+        base_url = f"postgresql://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@{self.POSTGRES_HOST}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
+        
+        if hasattr(self, 'DATABASE_SSL_MODE') and self.DATABASE_SSL_MODE:
+            return f"{base_url}?sslmode={self.DATABASE_SSL_MODE}"
+        return base_url
 
     @field_validator("BACKEND_CORS_ORIGINS", mode="before")
     @classmethod

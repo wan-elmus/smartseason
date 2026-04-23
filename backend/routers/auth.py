@@ -5,6 +5,7 @@ from core.database import get_db
 from core.models import User
 from core.schemas import UserCreate, UserLogin, Token, UserResponse
 from core.security import get_password_hash, verify_password, create_access_token, create_refresh_token
+from core.dependencies import get_current_user
 import logging
 
 logger = logging.getLogger(__name__)
@@ -98,3 +99,10 @@ async def refresh_token(refresh_token: str, db: AsyncSession = Depends(get_db)):
         refresh_token=new_refresh_token,
         expires_in=60,
     )
+    
+@router.get("/me", response_model=UserResponse)
+async def get_current_user_info(
+    current_user: User = Depends(get_current_user),
+):
+    """Get current authenticated user's information."""
+    return current_user

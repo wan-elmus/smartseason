@@ -3,12 +3,14 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import JSONResponse
+from fastapi.staticfiles import StaticFiles
 from contextlib import asynccontextmanager
 import logging
+import os
 
 from core.config import settings
 from core.database import init_db
-from routers import auth_router, fields_router, updates_router, dashboard_router, ai_router
+from routers import auth_router, fields_router, updates_router, dashboard_router, ai_router, upload_router
 
 logging.basicConfig(
     level=getattr(logging, settings.LOG_LEVEL.upper()),
@@ -54,6 +56,10 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+uploads_dir = "uploads"
+if not os.path.exists(uploads_dir):
+    os.makedirs(uploads_dir, exist_ok=True)
+app.mount("/uploads", StaticFiles(directory=uploads_dir), name="uploads")
 
 if settings.BACKEND_CORS_ORIGINS:
     app.add_middleware(
@@ -97,6 +103,7 @@ app.include_router(fields_router, prefix="/v4", tags=["Fields"])
 app.include_router(updates_router, prefix="/v4", tags=["Updates"])
 app.include_router(dashboard_router, prefix="/v4", tags=["Dashboard"])
 app.include_router(ai_router, prefix="/v4", tags=["AI Features"])
+app.include_router(upload_router, prefix="/v4", tags=["File Upload"])
 
 
 if __name__ == "__main__":

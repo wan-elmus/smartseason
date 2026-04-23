@@ -3,6 +3,7 @@ from routers.fields import router as fields_router
 from routers.updates import router as updates_router
 from routers.dashboard import router as dashboard_router
 from routers.ai import router as ai_router
+from routers.upload import router as upload_router
 
 __all__ = [
     "auth_router",
@@ -10,4 +11,5 @@ __all__ = [
     "updates_router",
     "dashboard_router",
     "ai_router",
+    "upload_router",
 ]

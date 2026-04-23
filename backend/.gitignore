@@ -8,6 +8,8 @@ __pycache__/
 test.txt
 TEST.py
 sensor_simulator.py
+test.sh
+seed.py
 
 # Distribution / packaging
 .Python

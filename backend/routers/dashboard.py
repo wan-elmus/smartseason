@@ -41,7 +41,8 @@ async def admin_dashboard(
     
     for field in fields:
         status, _, _ = compute_field_status(field)
-        status_counts[status.lower()] += 1
+        status_key = status.lower().replace(' ', '_')
+        status_counts[status_key] += 1
         
         crop = field.crop_type
         crop_counts[crop] = crop_counts.get(crop, 0) + 1
@@ -133,7 +134,8 @@ async def agent_dashboard(
     
     for field in fields:
         status, _, days_update = compute_field_status(field)
-        status_counts[status.lower()] += 1
+        status_key = status.lower().replace(' ', '_')
+        status_counts[status_key] += 1
         if days_update and days_update > 14:
             pending_count += 1
     

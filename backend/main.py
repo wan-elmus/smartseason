@@ -92,11 +92,11 @@ async def http_exception_handler(request, exc: HTTPException):
     )
 
 
-app.include_router(auth_router, prefix="/v4/auth", tags=["Authentication"])
-app.include_router(fields_router, prefix="/v4/fields", tags=["Fields"])
-app.include_router(updates_router, prefix="/v4/updates", tags=["Updates"])
-app.include_router(dashboard_router, prefix="/v4/dashboard", tags=["Dashboard"])
-app.include_router(ai_router, prefix="/v4/ai", tags=["AI Features"])
+app.include_router(auth_router, prefix="/v4", tags=["Authentication"])
+app.include_router(fields_router, prefix="/v4", tags=["Fields"])
+app.include_router(updates_router, prefix="/v4", tags=["Updates"])
+app.include_router(dashboard_router, prefix="/v4", tags=["Dashboard"])
+app.include_router(ai_router, prefix="/v4", tags=["AI Features"])
 
 
 if __name__ == "__main__":

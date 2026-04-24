@@ -188,13 +188,13 @@ async def assign_field(
     current_user = Depends(get_current_admin),
     db: AsyncSession = Depends(get_db),
 ):
-    """Assign field to agent - ADMIN ONLY."""
+    """Assign field to agent - ADMIN ONLY. Reassigns if already assigned."""
     field_result = await db.execute(select(Field).where(Field.id == field_id))
     if not field_result.scalar_one_or_none():
         raise HTTPException(status_code=404, detail="Field not found")
     
     agent_result = await db.execute(
-        select(User).where(User.id == assignment.agent_id, User.role == UserRole.AGENT)
+        select(User).where(User.id == assignment.agent_id, User.role == UserRole.AGENT, User.is_active == True)
     )
     if not agent_result.scalar_one_or_none():
         raise HTTPException(status_code=404, detail="Agent not found")
@@ -205,6 +205,7 @@ async def assign_field(
     existing_assign = existing.scalar_one_or_none()
     if existing_assign:
         await db.delete(existing_assign)
+        await db.flush()
     
     new_assignment = FieldAssignment(field_id=field_id, agent_id=assignment.agent_id)
     db.add(new_assignment)
@@ -254,3 +255,22 @@ async def get_my_assigned_fields(
         ))
     
     return response_fields
+
+@router.delete("/{field_id}/assign", status_code=status.HTTP_204_NO_CONTENT)
+async def unassign_field(
+    field_id: int,
+    current_user = Depends(get_current_admin),
+    db: AsyncSession = Depends(get_db),
+):
+    """Remove field assignment - ADMIN ONLY."""
+    existing = await db.execute(
+        select(FieldAssignment).where(FieldAssignment.field_id == field_id)
+    )
+    existing_assign = existing.scalar_one_or_none()
+    if not existing_assign:
+        raise HTTPException(status_code=404, detail="No assignment found for this field")
+    
+    await db.delete(existing_assign)
+    await db.commit()
+    
+    return None

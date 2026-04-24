@@ -1,90 +1,41 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
+import LoginForm from '@/components/forms/LoginForm';
+import Card from '@/components/ui/Card';
 
 export default function LoginPage() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
-  const { login } = useAuth();
+  const { user, loading } = useAuth();
   const router = useRouter();
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError('');
-    setLoading(true);
-
-    const result = await login(email, password);
-    
-    if (result.success) {
-      router.push('/');
-    } else {
-      setError(result.error);
-      setLoading(false);
+  useEffect(() => {
+    if (!loading && user) {
+      router.push(user.role === 'admin' ? '/dashboard/admin' : '/dashboard/agent');
     }
-  };
+  }, [user, loading, router]);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <div className="max-w-md w-full space-y-8 p-8 bg-white rounded-lg shadow-md">
-        <div className="text-center">
-          <h2 className="text-3xl font-bold text-gray-900">SmartSeason</h2>
-          <p className="mt-2 text-gray-600">Field Monitoring System</p>
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+      <div className="w-full max-w-sm">
+        <div className="text-center mb-6">
+          <div className="text-3xl mb-2">🌱</div>
+          <h1 className="text-xl font-semibold text-gray-800">SmartSeason</h1>
+          <p className="text-xs text-gray-500 mt-1">Field Monitoring System</p>
         </div>
         
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          {error && (
-            <div className="bg-red-50 text-red-800 p-3 rounded-md text-sm">
-              {error}
-            </div>
-          )}
-          
-          <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-              Email Address
-            </label>
-            <input
-              id="email"
-              type="email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary"
-              placeholder="admin@smartseason.com"
-            />
-          </div>
-          
-          <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-              Password
-            </label>
-            <input
-              id="password"
-              type="password"
-              required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary"
-            />
-          </div>
-          
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary disabled:opacity-50"
-          >
-            {loading ? 'Signing in...' : 'Sign in'}
-          </button>
-        </form>
-        
-        <div className="text-center text-sm text-gray-500">
-          <p>Demo Credentials:</p>
-          <p>Admin: admin092@smartseason.com / Rise@123!</p>
-          <p>Agent: jane.agent@smartseason.com / Mwangi@123!</p>
-        </div>
+        <Card title="Sign in to your account">
+          <LoginForm />
+        </Card>
       </div>
     </div>
   );

@@ -14,6 +14,10 @@ export const ROUTES = {
   REFRESH_TOKEN: `${API_BASE}/auth/refresh`,
   ME: `${API_BASE}/auth/me`,
   
+  // Users
+  USERS_AGENTS: `${API_BASE}/users/agents`,
+  USERS_ALL: `${API_BASE}/users`,
+  
   // Fields
   FIELDS: `${API_BASE}/fields`,
   FIELD_DETAIL: (id) => `${API_BASE}/fields/${id}`,
@@ -33,6 +37,9 @@ export const ROUTES = {
   SUGGEST_STAGE: (fieldId) => `${API_BASE}/ai/suggest-stage/${fieldId}`,
 
   UPLOAD_IMAGE: `${API_BASE}/upload/image`,
+  
+  // Profile
+  UPDATE_PROFILE: `${API_BASE}/auth/profile`,
   
   // General
   HEALTH: `${API_BASE}/health`,

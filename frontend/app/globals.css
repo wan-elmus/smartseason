@@ -1,12 +1,14 @@
 @import "tailwindcss";
 
 @theme {
-  /* Primary Colors */
-  --color-primary: #2E7D32;
+  --color-primary: #12c233;
+  --color-primary-dark: #0e9e2a;
+  --color-primary-light: #3ace4e;
   --color-secondary: #FFA000;
   --color-danger: #DC2626;
+  --color-warning: #F59E0B;
+  --color-success: #10B981;
   
-  /* Gray Scale */
   --color-gray-50: #F9FAFB;
   --color-gray-100: #F3F4F6;
   --color-gray-200: #E5E7EB;
@@ -19,22 +21,139 @@
   --color-gray-900: #111827;
 }
 
-@layer base {
-  body {
-    @apply bg-gray-50 text-gray-900;
+/* Base styles */
+body {
+  background-color: var(--color-gray-50);
+  color: var(--color-gray-900);
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+}
+
+h1 {
+  font-size: 1.25rem;
+  line-height: 1.75rem;
+  font-weight: 600;
+  color: var(--color-gray-800);
+}
+
+h2 {
+  font-size: 1.125rem;
+  line-height: 1.5rem;
+  font-weight: 500;
+  color: var(--color-gray-800);
+}
+
+h3 {
+  font-size: 1rem;
+  line-height: 1.5rem;
+  font-weight: 500;
+  color: var(--color-gray-800);
+}
+
+/* Button styles */
+.btn-primary {
+  background-color: var(--color-primary);
+  color: white;
+  padding: 0.375rem 0.75rem;
+  font-size: 0.875rem;
+  border-radius: 0.375rem;
+  transition-property: background-color;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
+}
+
+.btn-primary:hover {
+  background-color: var(--color-primary-dark);
+}
+
+.btn-primary:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--color-primary), 0 0 0 4px white;
+}
+
+.btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-secondary {
+  background-color: white;
+  color: var(--color-gray-700);
+  border: 1px solid var(--color-gray-300);
+  padding: 0.375rem 0.75rem;
+  font-size: 0.875rem;
+  border-radius: 0.375rem;
+  transition-property: background-color;
+  transition-duration: 150ms;
+}
+
+.btn-secondary:hover {
+  background-color: var(--color-gray-50);
+}
+
+.btn-danger {
+  background-color: var(--color-danger);
+  color: white;
+  padding: 0.375rem 0.75rem;
+  font-size: 0.875rem;
+  border-radius: 0.375rem;
+  transition-property: background-color;
+  transition-duration: 150ms;
+}
+
+.btn-danger:hover {
+  background-color: #b91c1c;
+}
+
+/* Card styles */
+.card {
+  background-color: white;
+  border-radius: 0.5rem;
+  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  border: 1px solid var(--color-gray-200);
+  overflow: hidden;
+}
+
+.card-header {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--color-gray-200);
+  background-color: var(--color-gray-50);
+}
+
+.card-body {
+  padding: 1rem;
+}
+
+/* Form styles */
+.input {
+  width: 100%;
+  padding: 0.375rem 0.75rem;
+  font-size: 0.875rem;
+  border: 1px solid var(--color-gray-300);
+  border-radius: 0.375rem;
+}
+
+.input:focus {
+  outline: none;
+  box-shadow: 0 0 0 1px var(--color-primary);
+  border-color: var(--color-primary);
+}
+
+.label {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--color-gray-700);
+  margin-bottom: 0.25rem;
+}
+
+/* Spinner animation */
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
   }
 }
 
-@layer components {
-  .btn-primary {
-    @apply bg-primary text-white px-4 py-2 rounded-md hover:bg-green-700 transition-colors;
-  }
-  
-  .btn-secondary {
-    @apply bg-secondary text-white px-4 py-2 rounded-md hover:bg-yellow-600 transition-colors;
-  }
-  
-  .card {
-    @apply bg-white rounded-lg shadow-sm border border-gray-200;
-  }
+.animate-spin {
+  animation: spin 1s linear infinite;
 }

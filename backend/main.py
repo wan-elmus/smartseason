@@ -35,7 +35,7 @@ async def lifespan(app: FastAPI):
         async with AsyncSessionLocal() as session:
             user_count = await session.execute(select(func.count()).select_from(User))
             if user_count.scalar() == 0:
-                logger.warning("Database empty. Run seeding manually with: python -m db.seed")
+                logger.warning("Database empty. Run seeding manually with: python3 -m db.seed")
                 
     except Exception as e:
         logger.error(f"Database initialization failed: {e}")
@@ -64,9 +64,11 @@ app.mount("/uploads", StaticFiles(directory=uploads_dir), name="uploads")
 if settings.BACKEND_CORS_ORIGINS:
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=settings.BACKEND_CORS_ORIGINS,
+        # allow_origins=settings.BACKEND_CORS_ORIGINS,
+        allow_origins=["*"], 
         allow_credentials=True,
-        allow_methods=["*"],
+        # allow_methods=["*"],
+        allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
         allow_headers=["*"],
         expose_headers=["*"],
     )

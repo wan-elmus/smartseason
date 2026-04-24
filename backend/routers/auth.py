@@ -120,3 +120,30 @@ async def update_profile(
     await db.commit()
     await db.refresh(current_user)
     return current_user
+
+@router.post("/change-password")
+async def change_password(
+    current_password: str = Body(...),
+    new_password: str = Body(...),
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Change user's password."""
+    from core.security import verify_password, get_password_hash
+    
+    if not verify_password(current_password, current_user.hashed_password):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Current password is incorrect"
+        )
+    
+    if len(new_password) < 8:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="New password must be at least 8 characters"
+        )
+    
+    current_user.hashed_password = get_password_hash(new_password)
+    await db.commit()
+    
+    return {"message": "Password changed successfully"}

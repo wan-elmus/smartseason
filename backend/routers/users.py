@@ -1,4 +1,6 @@
 from typing import List
+
+from pyparsing import Optional
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
@@ -38,14 +40,29 @@ async def get_current_user_info(
     return current_user
 
 
+# @router.put("/profile", response_model=UserResponse)
+# async def update_profile(
+#     full_name: str,
+#     current_user = Depends(get_current_user),
+#     db: AsyncSession = Depends(get_db),
+# ):
+#     """Update current user's profile."""
+#     current_user.full_name = full_name
+#     await db.commit()
+#     await db.refresh(current_user)
+#     return current_user
+
 @router.put("/profile", response_model=UserResponse)
 async def update_profile(
     full_name: str,
+    avatar_url: Optional[str] = None,
     current_user = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
     """Update current user's profile."""
     current_user.full_name = full_name
+    if avatar_url is not None:
+        current_user.avatar_url = avatar_url
     await db.commit()
     await db.refresh(current_user)
     return current_user

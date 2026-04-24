@@ -122,3 +122,33 @@ async def get_field_updates(
         )
         for u in updates
     ]
+    
+@router.get("/my", response_model=List[UpdateResponse])
+async def get_my_updates(
+    current_user = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+    limit: int = 50,
+):
+    """Get updates submitted by the current user."""
+    result = await db.execute(
+        select(FieldUpdate)
+        .options(selectinload(FieldUpdate.field))
+        .where(FieldUpdate.agent_id == current_user.id)
+        .order_by(FieldUpdate.created_at.desc())
+        .limit(limit)
+    )
+    updates = result.scalars().all()
+    
+    return [
+        UpdateResponse(
+            id=u.id,
+            field_id=u.field_id,
+            agent_id=u.agent_id,
+            new_stage=u.new_stage,
+            notes=u.notes,
+            image_url=u.image_url,
+            created_at=u.created_at,
+            agent_name=current_user.full_name,
+        )
+        for u in updates
+    ]

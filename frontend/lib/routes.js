@@ -13,6 +13,9 @@ export const ROUTES = {
   REGISTER: `${API_BASE}/auth/register`,
   REFRESH_TOKEN: `${API_BASE}/auth/refresh`,
   ME: `${API_BASE}/auth/me`,
+  CHANGE_PASSWORD: `${API_BASE}/auth/change-password`,
+  MY_UPDATES: `${API_BASE}/updates/my`,
+  MY_FIELDS: `${API_BASE}/fields/agent/assigned`,
   
   // Users
   USERS_AGENTS: `${API_BASE}/users/agents`,
@@ -39,7 +42,12 @@ export const ROUTES = {
   UPLOAD_IMAGE: `${API_BASE}/upload/image`,
   
   // Profile
-  UPDATE_PROFILE: `${API_BASE}/auth/profile`,
+  UPDATE_PROFILE: `${API_BASE}/users/profile`,
+
+  // Trends
+  FIELD_ACTIVITY_TREND: `${API_BASE}/trends/field-activity`,
+  FIELD_GROWTH_TREND: `${API_BASE}/trends/field-growth`,
+  STATUS_DISTRIBUTION: `${API_BASE}/trends/status-distribution-over-time`,
   
   // General
   HEALTH: `${API_BASE}/health`,

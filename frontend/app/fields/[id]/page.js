@@ -6,57 +6,75 @@ import { useAuthHook } from '@/hooks/useAuth';
 import { useFieldUpdates } from '@/hooks/useFieldUpdates';
 import apiClient from '@/lib/api';
 import { ROUTES } from '@/lib/routes';
-import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
-import StatusBadge from '@/components/ui/StatusBadge';
 import Spinner from '@/components/ui/Spinner';
 import UpdateForm from '@/components/forms/UpdateForm';
-import { formatDate, getRelativeTime } from '@/lib/utils';
+
+import {
+  formatDate,
+  getRelativeTime,
+  getStageTheme,
+} from '@/lib/utils';
+
+import {
+  ArrowLeft,
+  Calendar,
+  Clock,
+  MapPin,
+  User,
+  Lightbulb,
+} from 'lucide-react';
+
+import Image from 'next/image';
 
 export default function FieldDetailPage() {
   const params = useParams();
   const router = useRouter();
   const fieldId = parseInt(params.id);
-  const { isAdmin } = useAuthHook();
+
+  const { user } = useAuthHook();
+
   const [field, setField] = useState(null);
   const [loading, setLoading] = useState(true);
   const [showUpdateForm, setShowUpdateForm] = useState(false);
-  
-  const { updates, submitUpdate, fetchUpdates, stageSuggestion, fetchStageSuggestion } = useFieldUpdates(fieldId);
+
+  const {
+    updates,
+    submitUpdate,
+    stageSuggestion,
+    fetchStageSuggestion,
+  } = useFieldUpdates(fieldId);
 
   useEffect(() => {
     const fetchField = async () => {
       try {
-        const response = await apiClient.get(ROUTES.FIELD_DETAIL(fieldId));
-        setField(response.data);
-      } catch (error) {
-        console.error('Failed to fetch field:', error);
-        if (error.response?.status === 404) {
+        const res = await apiClient.get(ROUTES.FIELD_DETAIL(fieldId));
+        setField(res.data);
+      } catch (err) {
+        if (err.response?.status === 404) {
           router.push('/fields');
         }
       } finally {
         setLoading(false);
       }
     };
+
     fetchField();
     fetchStageSuggestion();
   }, [fieldId, router, fetchStageSuggestion]);
 
   const handleSubmitUpdate = async (formData) => {
-    const result = await submitUpdate(formData);
-    if (result.success) {
+    const res = await submitUpdate(formData);
+    if (res.success) {
       setShowUpdateForm(false);
-      // Refresh field data
-      const response = await apiClient.get(ROUTES.FIELD_DETAIL(fieldId));
-      setField(response.data);
-    } else {
-      alert(result.error);
+      const refreshed = await apiClient.get(ROUTES.FIELD_DETAIL(fieldId));
+      setField(refreshed.data);
     }
   };
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
+      <div className="flex justify-center h-64">
         <Spinner size="lg" />
       </div>
     );
@@ -64,120 +82,200 @@ export default function FieldDetailPage() {
 
   if (!field) {
     return (
-      <Card>
-        <div className="text-center py-8">
-          <p className="text-sm text-gray-500">Field not found</p>
-          <Button variant="primary" size="sm" className="mt-3" onClick={() => router.push('/fields')}>
-            Back to Fields
-          </Button>
-        </div>
-      </Card>
+      <div className="bg-white rounded-2xl ring-1 ring-gray-200 p-10 text-center">
+        <p className="text-gray-500">Field not found</p>
+        <Button onClick={() => router.push('/fields')} className="mt-4">
+          Back to Fields
+        </Button>
+      </div>
     );
   }
 
+  const theme = getStageTheme(field.current_stage);
+
   return (
-    <div className="space-y-4">
-      {/* Header */}
-      <div className="flex justify-between items-start flex-wrap gap-3">
-        <div>
-          <button
-            onClick={() => router.push('/fields')}
-            className="text-xs text-gray-500 hover:text-gray-700 mb-2 inline-flex items-center"
-          >
-            ← Back to Fields
-          </button>
-          <h1>{field.name}</h1>
-          <div className="flex items-center space-x-2 mt-1">
-            <StatusBadge status={field.computed_status} />
-            <span className="text-xs text-gray-400">•</span>
-            <span className="text-xs text-gray-600">{field.crop_type}</span>
+    <div className="max-w-5xl mx-auto space-y-8">
+
+      {/* Back */}
+      <button
+        onClick={() => router.push('/fields')}
+        className="flex items-center gap-1 text-sm text-primary font-semibold hover:bg-primary/30 focus:ring-primary"
+      >
+        <ArrowLeft className="w-4 h-4" />
+        Back
+      </button>
+
+      {/* HEADER — STAGE-DRIVEN (NO BADGES) */}
+      <div className={`rounded-2xl p-6 border ${theme.bg} ${theme.border}`}>
+        <div className="flex flex-col sm:flex-row justify-between gap-4">
+          
+          <div>
+            <h1 className={`text-2xl font-semibold ${theme.text}`}>
+              {field.name}
+            </h1>
+
+            <p className={`text-sm mt-1 ${theme.subtle}`}>
+              {field.crop_type} • {field.current_stage}
+            </p>
+
+            <p className="text-xs text-gray-500 mt-2">
+              Status: {field.computed_status}
+            </p>
           </div>
+
+          {!showUpdateForm && (
+            <Button onClick={() => setShowUpdateForm(true)}>
+              + Add Update
+            </Button>
+          )}
         </div>
-        {!showUpdateForm && (
-          <Button variant="primary" size="sm" onClick={() => setShowUpdateForm(true)}>
-            + Add Update
-          </Button>
-        )}
       </div>
 
-      {/* Field Info Cards */}
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <div className="bg-gray-50 rounded-lg p-3">
-          <p className="text-xs text-gray-500">Current Stage</p>
-          <p className="text-sm font-medium text-gray-800">{field.current_stage}</p>
+      {/* STATS */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+        
+        <div className="bg-white p-4 rounded-xl ring-1 ring-gray-200 shadow-sm">
+          <p className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider">
+            Stage
+          </p>
+          <p className="text-base font-semibold text-gray-900 mt-1">
+            {field.current_stage}
+          </p>
         </div>
-        <div className="bg-gray-50 rounded-lg p-3">
-          <p className="text-xs text-gray-500">Planted</p>
-          <p className="text-sm font-medium text-gray-800">{formatDate(field.planting_date)}</p>
+
+        <div className="bg-white p-4 rounded-xl ring-1 ring-gray-200 shadow-sm">
+          <p className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider flex items-center gap-1">
+            <Calendar className="w-3.5 h-3.5" /> Planted
+          </p>
+          <p className="text-sm font-medium text-gray-900 mt-1">
+            {formatDate(field.planting_date)}
+          </p>
         </div>
-        <div className="bg-gray-50 rounded-lg p-3">
-          <p className="text-xs text-gray-500">Days in Field</p>
-          <p className="text-sm font-medium text-gray-800">{field.days_since_planting} days</p>
+
+        <div className="bg-white p-4 rounded-xl ring-1 ring-gray-200 shadow-sm">
+          <p className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider flex items-center gap-1">
+            <Clock className="w-3.5 h-3.5" /> Age
+          </p>
+          <p className="text-base font-semibold text-gray-900 mt-1">
+            {field.days_since_planting} days
+          </p>
         </div>
-        <div className="bg-gray-50 rounded-lg p-3">
-          <p className="text-xs text-gray-500">Last Update</p>
-          <p className="text-sm font-medium text-gray-800">
-            {field.last_update ? getRelativeTime(field.last_update) : 'Never'}
+
+        <div className="bg-white p-4 rounded-xl ring-1 ring-gray-200 shadow-sm">
+          <p className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider">
+            Last Update
+          </p>
+          <p className="text-sm font-medium text-gray-900 mt-1">
+            {field.last_update ? getRelativeTime(field.last_update) : '—'}
           </p>
         </div>
       </div>
 
-      {/* Stage Suggestion */}
+      {/* LOCATION */}
+      {(field.latitude || field.longitude) && (
+        <div className="bg-white p-4 rounded-xl ring-1 ring-gray-200 shadow-sm flex items-center gap-2 text-sm">
+          <MapPin className="w-4 h-4 text-gray-400" />
+          <span className="text-gray-500">Location:</span>
+          <span className="font-semibold text-gray-800">
+            {field.latitude && field.longitude
+              ? `${Number(field.latitude).toFixed(4)}°, ${Number(field.longitude).toFixed(4)}°`
+              : field.latitude || field.longitude}
+          </span>
+        </div>
+      )}
+
+      {/* AI */}
       {stageSuggestion?.suggested_stage && (
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-          <div className="flex items-start space-x-2">
-            <span className="text-blue-500 text-sm">💡</span>
-            <div>
-              <p className="text-xs font-medium text-blue-800">AI Suggestion</p>
-              <p className="text-xs text-blue-700">{stageSuggestion.reason}</p>
-            </div>
+        <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex gap-3">
+          <Lightbulb className="w-5 h-5 text-amber-600 mt-0.5" />
+          <div>
+            <p className="text-xs font-semibold text-amber-800 uppercase tracking-wide">
+              AI Recommendation
+            </p>
+            <p className="text-sm text-amber-700 mt-1">
+              {stageSuggestion.reason}
+            </p>
           </div>
         </div>
       )}
 
-      {/* Update Form */}
+      {/* FORM */}
       {showUpdateForm && (
-        <Card title="Submit Field Update">
+        <div className="bg-white rounded-2xl p-6 ring-1 ring-gray-200 shadow-sm">
           <UpdateForm
             fieldId={fieldId}
             onSubmit={handleSubmitUpdate}
             onCancel={() => setShowUpdateForm(false)}
           />
-        </Card>
+        </div>
       )}
 
-      {/* Update History */}
-      <Card title="Update History">
+      {/* TIMELINE */}
+      <div className="bg-white rounded-2xl ring-1 ring-gray-200 shadow-sm overflow-hidden">
+        
+        <div className="px-6 py-4 border-b border-gray-100">
+          <h2 className="text-sm font-semibold text-gray-900">
+            Update History
+          </h2>
+        </div>
+
         {updates.length === 0 ? (
-          <p className="text-xs text-gray-500 text-center py-4">No updates recorded yet</p>
+          <div className="py-12 text-center text-gray-500">
+            No updates recorded yet
+          </div>
         ) : (
-          <div className="space-y-3">
-            {updates.map((update) => (
-              <div key={update.id} className="border-b border-gray-100 last:border-0 pb-3 last:pb-0">
-                <div className="flex justify-between items-start">
-                  <div className="flex items-center space-x-2">
-                    <StatusBadge status={update.new_stage} size="xs" />
-                    <span className="text-xs text-gray-500">
-                      {formatDate(update.created_at)}
-                    </span>
-                    <span className="text-xs text-gray-400">
-                      by {update.agent_name}
-                    </span>
+          <div className="divide-y divide-gray-100">
+            {updates.map((update) => {
+              const updateTheme = getStageTheme(update.new_stage);
+
+              return (
+                <div key={update.id} className="p-6">
+                  
+                  {/* Top */}
+                  <div className="flex justify-between items-center mb-3">
+                    <div className="flex items-center gap-3">
+                      
+                      <span className={`text-xs font-semibold ${updateTheme.text}`}>
+                        {update.new_stage}
+                      </span>
+
+                      <span className="text-sm text-gray-500">
+                        {formatDate(update.created_at)}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center gap-1 text-xs text-gray-500">
+                      <User className="w-3.5 h-3.5" />
+                      <span className="font-semibold text-gray-800">
+                        {update.agent_name}
+                      </span>
+                    </div>
                   </div>
+
+                  {/* Notes */}
+                  {update.notes && (
+                    <p className="text-sm text-gray-700 leading-relaxed">
+                      {update.notes}
+                    </p>
+                  )}
+
+                  {/* Image */}
+                  {update.image_url && (
+                    <div className="mt-4 relative w-full max-w-xs h-40">
+                      <Image
+                        src={update.image_url}
+                        alt="Field update"
+                        fill
+                        className="rounded-lg object-cover border border-gray-200"
+                      />
+                    </div>
+                  )}
                 </div>
-                {update.notes && (
-                  <p className="text-xs text-gray-600 mt-1">{update.notes}</p>
-                )}
-                {update.ai_alert && (
-                  <div className="mt-1 text-xs text-yellow-700 bg-yellow-50 inline-block px-2 py-0.5 rounded">
-                    ⚠️ {update.ai_alert}
-                  </div>
-                )}
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
-      </Card>
+      </div>
     </div>
   );
 }

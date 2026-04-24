@@ -4,7 +4,7 @@ import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import LoginForm from '@/components/forms/LoginForm';
-import Card from '@/components/ui/Card';
+import Spinner from '@/components/ui/Spinner';
 
 export default function LoginPage() {
   const { user, loading } = useAuth();
@@ -18,24 +18,38 @@ export default function LoginPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
+      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+        <Spinner size="lg" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
-      <div className="w-full max-w-sm">
-        <div className="text-center mb-6">
-          <div className="text-3xl mb-2">🌱</div>
-          <h1 className="text-xl font-semibold text-gray-800">SmartSeason</h1>
-          <p className="text-xs text-gray-500 mt-1">Field Monitoring System</p>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200 px-4">
+      <div className="w-full max-w-md">
+        {/* Logo/Brand Section */}
+        <div className="text-center mb-8">
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-primary to-primary-dark rounded-2xl shadow-lg mb-4">
+            <span className="text-3xl">🌱</span>
+          </div>
+          <h1 className="text-2xl font-bold text-gray-800">SmartSeason</h1>
+          <p className="text-sm text-gray-500 mt-1">Field Monitoring System</p>
         </div>
         
-        <Card title="Sign in to your account">
-          <LoginForm />
-        </Card>
+        {/* Login Card with Distinct Shadow */}
+        <div className="bg-white rounded-xl shadow-xl shadow-gray-300/50 border border-gray-100 overflow-hidden">
+          <div className="px-6 pt-6 pb-2">
+            <p className="text-center text-xs text-gray-500 mt-0.5">Sign in to continue to your dashboard</p>
+          </div>
+          <div className="p-6 pt-4">
+            <LoginForm />
+          </div>
+        </div>
+        
+        {/* Help text */}
+        <p className="text-center text-xs text-gray-400 mt-6">
+          Need help? Contact your system administrator
+        </p>
       </div>
     </div>
   );

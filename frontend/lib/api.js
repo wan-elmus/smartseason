@@ -59,15 +59,17 @@ apiClient.interceptors.response.use(
       });
     }
 
+    // Handle 401 Unauthorized
     if (error.response?.status === 401 && !originalRequest._retry) {
       if (originalRequest.url?.includes('/auth/refresh')) {
         clearTokens();
-        if (typeof window !== 'undefined') {
+        if (typeof window !== 'undefined' && !window.location.pathname.includes('/login')) {
           window.location.href = '/login';
         }
         return Promise.reject(error);
       }
 
+      // If already refreshing, queue this request
       if (isRefreshing) {
         return new Promise((resolve, reject) => {
           failedQueue.push({ resolve, reject });
@@ -87,6 +89,9 @@ apiClient.interceptors.response.use(
       if (!refreshToken) {
         clearTokens();
         isRefreshing = false;
+        if (typeof window !== 'undefined' && !window.location.pathname.includes('/login')) {
+          window.location.href = '/login';
+        }
         return Promise.reject(error);
       }
 
@@ -105,7 +110,8 @@ apiClient.interceptors.response.use(
       } catch (refreshError) {
         processQueue(refreshError, null);
         clearTokens();
-        if (typeof window !== 'undefined') {
+        isRefreshing = false;
+        if (typeof window !== 'undefined' && !window.location.pathname.includes('/login')) {
           window.location.href = '/login';
         }
         return Promise.reject(refreshError);
@@ -114,9 +120,16 @@ apiClient.interceptors.response.use(
       }
     }
 
+    // Handle 403 Forbidden (Admin only pages accessed by agent)
+    if (error.response?.status === 403) {
+      return Promise.reject({
+        ...error,
+        userMessage: error.response?.data?.detail || 'You do not have permission to access this resource.',
+      });
+    }
+
     const statusMessages = {
       400: 'Bad request. Please check your input.',
-      403: 'You do not have permission to access this resource.',
       404: 'Resource not found.',
       500: 'Server error. Please try again later.',
     };
@@ -128,6 +141,14 @@ apiClient.interceptors.response.use(
   }
 );
 
+export const setAuthTokens = (access, refresh) => {
+  setTokens(access, refresh);
+};
+
+export const clearAuth = () => {
+  clearTokens();
+};
+
 export const getAccessToken = () => {
   if (typeof window !== 'undefined') {
     return localStorage.getItem('access_token');
@@ -137,7 +158,16 @@ export const getAccessToken = () => {
 
 export const isAuthenticated = () => {
   if (typeof window === 'undefined') return false;
-  return !!localStorage.getItem('access_token');
+  const token = localStorage.getItem('access_token');
+  if (!token) return false;
+  
+  // Check if token is expired
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    return payload.exp * 1000 > Date.now();
+  } catch {
+    return false;
+  }
 };
 
 export const logout = () => {

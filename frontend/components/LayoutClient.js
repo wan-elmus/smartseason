@@ -1,33 +1,34 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import Navbar from '@/components/ui/Navbar';
 import MobileMenu from '@/components/ui/MobileMenu';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import Spinner from '@/components/ui/Spinner';
 
 export default function LayoutClient({ children }) {
   const { user, loading } = useAuth();
   const pathname = usePathname();
+  const router = useRouter();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  
+
   const isLoginPage = pathname === '/login';
   const isAuthPage = pathname === '/login' || pathname === '/register';
-  
+
+  useEffect(() => {
+    if (!loading && !user && !isAuthPage) {
+      router.push('/login');
+    }
+  }, [loading, user, isAuthPage, router]);
+
   if (loading && !isAuthPage) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gray-50">
-        <div className="text-center">
-          <div className="w-10 h-10 border-3 border-primary border-t-transparent rounded-full animate-spin mx-auto"></div>
-          <div className="flex items-center justify-center h-64">
-            <Spinner size="lg" />
-          </div>
-        </div>
+        <Spinner size="lg" />
       </div>
     );
   }
-
   if (isLoginPage || !user) {
     return <>{children}</>;
   }

@@ -22,8 +22,8 @@ export const formatDateTime = (dateString) => {
 
 export const getStatusColor = (status) => {
   const colors = {
-    Active: 'bg-green-100 text-green-800',
-    'At Risk': 'bg-yellow-100 text-yellow-800',
+    Active: 'bg-emerald-100 text-emerald-800',
+    'At Risk': 'bg-amber-100 text-amber-800',
     Completed: 'bg-gray-100 text-gray-800',
   };
   return colors[status] || 'bg-gray-100 text-gray-800';
@@ -31,16 +31,19 @@ export const getStatusColor = (status) => {
 
 export const getStageColor = (stage) => {
   const colors = {
-    Planted: 'bg-blue-100 text-blue-800',
-    Germination: 'bg-cyan-100 text-cyan-800',
-    Vegetative: 'bg-green-100 text-green-800',
-    Flowering: 'bg-purple-100 text-purple-800',
-    Mature: 'bg-orange-100 text-orange-800',
-    Ready: 'bg-orange-100 text-orange-800',
-    Growing: 'bg-green-100 text-green-800',
-    Harvested: 'bg-gray-100 text-gray-800',
+    Planted: 'bg-sky-100 text-sky-700',
+    Germination: 'bg-teal-100 text-teal-700',
+    Vegetative: 'bg-emerald-100 text-emerald-700',
+    Flowering: 'bg-purple-100 text-purple-700',
+    Mature: 'bg-amber-100 text-amber-700',
+    Ready: 'bg-orange-100 text-orange-700',
+    Harvested: 'bg-gray-100 text-gray-600',
   };
-  return colors[stage] || 'bg-gray-100 text-gray-800';
+  return colors[stage] || 'bg-gray-100 text-gray-600';
+};
+
+export const getStageBadgeClass = (stage) => {
+  return `${getStageColor(stage)} px-2.5 py-1 rounded-full text-xs font-medium`;
 };
 
 export const truncateText = (text, maxLength = 100) => {
@@ -67,4 +70,72 @@ export const getRelativeTime = (dateString) => {
 
 export const classNames = (...classes) => {
   return classes.filter(Boolean).join(' ');
+};
+
+export const getStatusStyles = (status) => {
+  const styles = {
+    Active: {
+      border: 'border-l-4 border-emerald-500',
+      bg: 'bg-emerald-50/40',
+    },
+    'At Risk': {
+      border: 'border-l-4 border-amber-500',
+      bg: 'bg-amber-50/40',
+    },
+    Completed: {
+      border: 'border-l-4 border-gray-400',
+      bg: 'bg-gray-50',
+    },
+  };
+
+  return styles[status] || styles.Completed;
+};
+
+export const getStageTheme = (stage) => {
+  const map = {
+    Planted: {
+      bg: 'bg-sky-50',
+      border: 'border-sky-200',
+      text: 'text-sky-900',
+      subtle: 'text-sky-700',
+    },
+    Germination: {
+      bg: 'bg-teal-50',
+      border: 'border-teal-200',
+      text: 'text-teal-900',
+      subtle: 'text-teal-700',
+    },
+    Vegetative: {
+      bg: 'bg-emerald-50',
+      border: 'border-emerald-200',
+      text: 'text-emerald-900',
+      subtle: 'text-emerald-700',
+    },
+    Flowering: {
+      bg: 'bg-purple-50',
+      border: 'border-purple-200',
+      text: 'text-purple-900',
+      subtle: 'text-purple-700',
+    },
+    Mature: {
+      bg: 'bg-amber-50',
+      border: 'border-amber-200',
+      text: 'text-amber-900',
+      subtle: 'text-amber-700',
+    },
+    Ready: {
+      bg: 'bg-orange-50',
+      border: 'border-orange-200',
+      text: 'text-orange-900',
+      subtle: 'text-orange-700',
+    },
+    Harvested: {
+      bg: 'bg-gray-100',
+      border: 'border-gray-300',
+      text: 'text-gray-900',
+      subtle: 'text-gray-600',
+    },
+  };
+
+  return map[stage] || map['Harvested'];
 };

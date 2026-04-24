@@ -29,42 +29,66 @@ export function useFields() {
   const createField = async (fieldData) => {
     try {
       const response = await apiClient.post(ROUTES.FIELDS, fieldData);
+
       await fetchFields();
+
       return { success: true, data: response.data };
     } catch (err) {
-      return { success: false, error: err.userMessage || 'Failed to create field' };
+      return {
+        success: false,
+        error: err.userMessage || 'Failed to create field',
+      };
     }
   };
 
   const updateField = async (id, fieldData) => {
     try {
-      const response = await apiClient.put(ROUTES.FIELD_DETAIL(id), fieldData);
+      const response = await apiClient.put(
+        ROUTES.FIELD_DETAIL(id),
+        fieldData
+      );
+
       await fetchFields();
+
       return { success: true, data: response.data };
     } catch (err) {
-      return { success: false, error: err.userMessage || 'Failed to update field' };
+      return {
+        success: false,
+        error: err.userMessage || 'Failed to update field',
+      };
     }
   };
 
   const deleteField = async (id) => {
     try {
       await apiClient.delete(ROUTES.FIELD_DETAIL(id));
+
       await fetchFields();
+
       return { success: true };
     } catch (err) {
-      return { success: false, error: err.userMessage || 'Failed to delete field' };
+      return {
+        success: false,
+        error: err.userMessage || 'Failed to delete field',
+      };
     }
   };
 
   const assignField = async (fieldId, agentId) => {
     try {
-      const response = await apiClient.post(ROUTES.ASSIGN_FIELD(fieldId), {
-        agent_id: agentId,
-      });
+      const response = await apiClient.post(
+        ROUTES.ASSIGN_FIELD(fieldId),
+        { agent_id: agentId }
+      );
+
       await fetchFields();
+
       return { success: true, data: response.data };
     } catch (err) {
-      return { success: false, error: err.userMessage || 'Failed to assign field' };
+      return {
+        success: false,
+        error: err.userMessage || 'Failed to assign field',
+      };
     }
   };
 

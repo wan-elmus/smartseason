@@ -55,29 +55,51 @@ async def suggest_next_stage(
     suggestion = None
     reason = ""
     
+    # Growth stages list
+    growth_stages = [FieldStage.GERMINATION, FieldStage.VEGETATIVE, FieldStage.FLOWERING]
+    
     if current == FieldStage.PLANTED:
         if days_since_planting > 14:
-            suggestion = FieldStage.GROWING
-            reason = f"Field planted {days_since_planting} days ago. Should be in growing stage."
+            suggestion = FieldStage.GERMINATION
+            reason = f"Field planted {days_since_planting} days ago. Should be in germination stage."
         else:
-            suggestion = FieldStage.GROWING
-            reason = "Ready to move to growing stage based on typical timeline."
+            suggestion = FieldStage.GERMINATION
+            reason = "Ready to move to germination stage based on typical timeline."
     
-    elif current == FieldStage.GROWING:
-        if days_since_planting > 60:
-            suggestion = FieldStage.READY
-            reason = f"Field is {days_since_planting} days old. Likely ready for harvest soon."
-        else:
-            suggestion = None
-            reason = "Continue monitoring. No stage change suggested yet."
+    elif current in growth_stages:
+        if current == FieldStage.GERMINATION:
+            if days_since_planting > 21:
+                suggestion = FieldStage.VEGETATIVE
+                reason = f"Field has been in germination for {days_since_planting - 14} days. Ready for vegetative stage."
+            else:
+                suggestion = None
+                reason = "Continue monitoring germination progress."
+        elif current == FieldStage.VEGETATIVE:
+            if days_since_planting > 45:
+                suggestion = FieldStage.FLOWERING
+                reason = f"Vegetative stage lasting {days_since_planting - 21} days. Should begin flowering soon."
+            else:
+                suggestion = None
+                reason = "Continue monitoring vegetative growth."
+        elif current == FieldStage.FLOWERING:
+            if days_since_planting > 75:
+                suggestion = FieldStage.MATURE
+                reason = f"Flowering stage lasting {days_since_planting - 45} days. Crops approaching maturity."
+            else:
+                suggestion = None
+                reason = "Monitor flowering progress and pest activity."
     
-    elif current == FieldStage.READY:
+    elif current == FieldStage.MATURE:
         suggestion = FieldStage.HARVESTED
-        reason = "Field is marked as ready. Suggest harvesting."
+        reason = "Field is mature and ready for harvest."
+    
+    elif current == FieldStage.HARVESTED:
+        suggestion = None
+        reason = "Field has been harvested. No further stage changes."
     
     else:
         suggestion = None
-        reason = "Field is harvested or at final stage."
+        reason = "Field is at final stage."
     
     return StageSuggestionResponse(
         suggested_stage=suggestion,

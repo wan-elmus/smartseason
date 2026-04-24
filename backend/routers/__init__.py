@@ -5,6 +5,7 @@ from routers.dashboard import router as dashboard_router
 from routers.ai import router as ai_router
 from routers.upload import router as upload_router
 from routers.users import router as users_router
+from routers.trends import router as trends_router
 
 __all__ = [
     "auth_router",
@@ -14,4 +15,5 @@ __all__ = [
     "ai_router",
     "upload_router",
     "users_router",
+    "trends_router",
 ]

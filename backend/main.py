@@ -10,7 +10,7 @@ import os
 
 from core.config import settings
 from core.database import init_db
-from routers import auth_router, fields_router, updates_router, dashboard_router, ai_router, upload_router
+from routers import auth_router, fields_router, updates_router, dashboard_router, ai_router, upload_router, users_router
 
 logging.basicConfig(
     level=getattr(logging, settings.LOG_LEVEL.upper()),
@@ -104,7 +104,7 @@ app.include_router(updates_router, prefix="/v4", tags=["Updates"])
 app.include_router(dashboard_router, prefix="/v4", tags=["Dashboard"])
 app.include_router(ai_router, prefix="/v4", tags=["AI Features"])
 app.include_router(upload_router, prefix="/v4", tags=["File Upload"])
-
+app.include_router(users_router, prefix="/v4", tags=["Users"])
 
 if __name__ == "__main__":
     import uvicorn

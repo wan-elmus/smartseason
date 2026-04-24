@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Body
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from core.database import get_db
@@ -100,9 +100,23 @@ async def refresh_token(refresh_token: str, db: AsyncSession = Depends(get_db)):
         expires_in=60,
     )
     
+
 @router.get("/me", response_model=UserResponse)
 async def get_current_user_info(
     current_user: User = Depends(get_current_user),
 ):
     """Get current authenticated user's information."""
+    return current_user
+
+
+@router.put("/profile", response_model=UserResponse)
+async def update_profile(
+    full_name: str = Body(..., embed=True),
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Update current user's profile (full name only)."""
+    current_user.full_name = full_name
+    await db.commit()
+    await db.refresh(current_user)
     return current_user

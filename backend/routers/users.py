@@ -46,9 +46,15 @@ async def update_profile(
     db: AsyncSession = Depends(get_db),
 ):
     """Update current user's profile."""
+    print(f"Received full_name: {full_name}")
+    print(f"Received avatar_url: {avatar_url}")
+    print(f"Current user before update: {current_user.full_name}, {current_user.avatar_url}")
+    
     current_user.full_name = full_name
     if avatar_url is not None:
         current_user.avatar_url = avatar_url
     await db.commit()
     await db.refresh(current_user)
+    
+    print(f"Current user after update: {current_user.full_name}, {current_user.avatar_url}")
     return current_user

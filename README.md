@@ -386,6 +386,11 @@ The status is **computed on-demand** rather than stored, ensuring real-time accu
 |------------|------------|
 | ![](./docs/AdminFields.png) | ![](./docs/NewFieldSequence.png) |
 
+
+### Field Details
+
+*Detailed view with update history and AI recommendations*
+
 | Detailed Field Page | Assign Agent |
 |------------|------------|
 | ![](./docs/IndividualPages.png) | ![](./docs/AssignAgent.png) |
@@ -403,20 +408,13 @@ The status is **computed on-demand** rather than stored, ensuring real-time accu
 ![](./docs/RecentAgentUpdate.png)
 
 
-### Field Details
-
-*Detailed view with update history and AI recommendations*
-
-![](./docs/field-details.png)
-
-
 ### Profile Management
 
 *User profile with avatar upload and password management*
 
 |  Admin Profile 1 | Admin Profile 2 |
 |------------|------------|
-| ![](./docs/AdminProfile.png) | ![](./docs/AdminProfile2.pngg) |
+| ![](./docs/AdminProfile.png) | ![](./docs/AdminProfile2.png) |
 
 
 ### Agent Profile

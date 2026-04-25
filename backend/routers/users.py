@@ -8,6 +8,7 @@ from core.schemas import UserResponse
 from core.dependencies import get_current_admin, get_current_user
 from constants.user_role import UserRole
 import logging
+import json
 
 logger = logging.getLogger(__name__)
 
@@ -40,21 +41,45 @@ async def get_current_user_info(
 
 @router.put("/profile", response_model=UserResponse)
 async def update_profile(
-    full_name: str,
-    avatar_url: Optional[str] = None,
+    request_data: dict,
     current_user = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
     """Update current user's profile."""
-    print(f"Received full_name: {full_name}")
-    print(f"Received avatar_url: {avatar_url}")
-    print(f"Current user before update: {current_user.full_name}, {current_user.avatar_url}")
-    
-    current_user.full_name = full_name
-    if avatar_url is not None:
-        current_user.avatar_url = avatar_url
-    await db.commit()
-    await db.refresh(current_user)
-    
-    print(f"Current user after update: {current_user.full_name}, {current_user.avatar_url}")
-    return current_user
+    try:
+        logger.info(f"Received request data: {request_data}")
+        
+        full_name = request_data.get("full_name")
+        avatar_url = request_data.get("avatar_url")
+        
+        logger.info(f"Parsed full_name: {full_name}")
+        logger.info(f"Parsed avatar_url: {avatar_url}")
+        
+        if not full_name or len(full_name.strip()) < 2:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Full name must be at least 2 characters"
+            )
+        
+        current_user.full_name = full_name.strip()
+        
+        if avatar_url is not None and avatar_url != "":
+            current_user.avatar_url = avatar_url
+        elif avatar_url == "":
+            current_user.avatar_url = None
+        
+        await db.commit()
+        await db.refresh(current_user)
+        
+        logger.info(f"Profile updated successfully for user {current_user.id}")
+        return current_user
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Profile update error: {e}")
+        await db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to update profile: {str(e)}"
+        )

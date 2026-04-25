@@ -17,8 +17,8 @@ export default function RecentActivityTable({ updates, maxDisplay = 5 }) {
 
   return (
     <div className="overflow-x-auto">
-      <table className="w-full text-sm">
-        <thead className="bg-gray-50 border-b border-gray-200">
+      <table className="min-w-180 w-full text-sm">
+        <thead className="bg-gray-50 border-b border-gray-300">
           <tr>
             <th className="text-left px-4 py-3 text-xs font-semibold text-gray-800 uppercase tracking-wider">
               Field

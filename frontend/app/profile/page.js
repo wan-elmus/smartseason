@@ -8,8 +8,9 @@ import apiClient from '@/lib/api';
 import { ROUTES } from '@/lib/routes';
 import Button from '@/components/ui/Button';
 import Spinner from '@/components/ui/Spinner';
+import PasswordChangeForm from '@/components/forms/PasswordChangeForm';
 import { formatDate, getRelativeTime } from '@/lib/utils';
-import { ArrowLeft, Camera, Key, Activity, Check } from 'lucide-react';
+import { ArrowLeft, Camera, Key, Activity, FileText, MapPin, Clock, CheckCircle, LogOut } from 'lucide-react';
 import Image from 'next/image';
 
 export default function ProfilePage() {
@@ -25,17 +26,13 @@ export default function ProfilePage() {
   const [nameError, setNameError] = useState('');
 
   const [showPasswordForm, setShowPasswordForm] = useState(false);
-  const [currentPassword, setCurrentPassword] = useState('');
-  const [newPassword, setNewPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
   const [changingPassword, setChangingPassword] = useState(false);
-  const [passwordError, setPasswordError] = useState('');
-  const [passwordSuccess, setPasswordSuccess] = useState('');
 
   const [activityData, setActivityData] = useState({
     lastLogin: null,
     updatesCount: 0,
     fieldsCount: 0,
+    completionRate: 0,
   });
   const [loadingActivity, setLoadingActivity] = useState(true);
 
@@ -52,15 +49,17 @@ export default function ProfilePage() {
         ]);
         if (!isMounted) return;
 
-        const fieldsCount = fieldsRes.data?.length || 0;
         const updatesCount = updatesRes.data?.length || 0;
-        
+        const fieldsCount = fieldsRes.data?.length || 0;
+        const completionRate = fieldsCount > 0 ? Math.round((updatesCount / (fieldsCount * 4)) * 100) : 0;
+
         setActivityData({
           lastLogin: localStorage.getItem('last_login')
             ? new Date(localStorage.getItem('last_login'))
             : null,
-          updatesCount: updatesCount,
-          fieldsCount: fieldsCount,
+          updatesCount,
+          fieldsCount,
+          completionRate: Math.min(completionRate, 100),
         });
       } catch (err) {
         if (!isMounted) return;
@@ -71,6 +70,7 @@ export default function ProfilePage() {
             : null,
           updatesCount: 0,
           fieldsCount: 0,
+          completionRate: 0,
         });
       } finally {
         setLoadingActivity(false);
@@ -111,9 +111,8 @@ export default function ProfilePage() {
         headers: { 'Content-Type': 'multipart/form-data' },
         timeout: 50000,
       });
-      console.log('Upload response:', res.data);
       setAvatarUrl(res.data.image_url);
-    } catch (error){
+    } catch (error) {
       console.error('Upload error:', error.response?.data || error.message);
       alert(error.response?.data?.detail || 'Failed to upload image');
     } finally {
@@ -130,54 +129,27 @@ export default function ProfilePage() {
 
     setUpdating(true);
     try {
-      await apiClient.put(ROUTES.UPDATE_PROFILE, {
+      const payload = {
         full_name: fullName,
-        avatar_url: avatarUrl,
-      });
+        avatar_url: avatarUrl && avatarUrl.trim() !== "" ? avatarUrl : null,
+      };
+      await apiClient.put(ROUTES.UPDATE_PROFILE, payload);
       setIsEditing(false);
     } catch (error) {
-      console.error('Update profile error:', error.response?.data || error.message);
+      console.error('Update error:', error);
       alert(error.response?.data?.detail || 'Failed to update profile');
     } finally {
       setUpdating(false);
     }
   };
 
-  const handleChangePassword = async () => {
-    setPasswordError('');
-    setPasswordSuccess('');
-
-    if (!currentPassword) {
-      setPasswordError('Current password is required');
-      return;
-    }
-    if (newPassword.length < 8) {
-      setPasswordError('Password must be at least 8 characters');
-      return;
-    }
-    if (newPassword !== confirmPassword) {
-      setPasswordError('Passwords do not match');
-      return;
-    }
-
+  const handleChangePassword = async (passwordData) => {
     setChangingPassword(true);
     try {
-      await apiClient.post(ROUTES.CHANGE_PASSWORD, {
-        current_password: currentPassword,
-        new_password: newPassword,
-      });
-
-      setPasswordSuccess('Password changed successfully');
-      setCurrentPassword('');
-      setNewPassword('');
-      setConfirmPassword('');
-
-      setTimeout(() => {
-        setShowPasswordForm(false);
-        setPasswordSuccess('');
-      }, 2000);
+      await apiClient.post(ROUTES.CHANGE_PASSWORD, passwordData);
+      return { success: true };
     } catch (err) {
-      setPasswordError(err.response?.data?.detail || 'Failed to change password');
+      return { success: false, error: err.response?.data?.detail || 'Failed to change password' };
     } finally {
       setChangingPassword(false);
     }
@@ -185,7 +157,7 @@ export default function ProfilePage() {
 
   if (isLoading) {
     return (
-      <div className="flex justify-center h-64">
+      <div className="flex justify-center items-center h-64">
         <Spinner size="lg" />
       </div>
     );
@@ -194,250 +166,301 @@ export default function ProfilePage() {
   const isAdmin = user?.role === 'admin';
   const displayAvatar = avatarUrl || user?.avatar_url;
 
+  const activityItems = [
+    {
+      label: 'Field Updates',
+      value: activityData.updatesCount,
+      icon: FileText,
+      color: 'text-emerald-600',
+      bgColor: 'bg-emerald-50',
+      borderColor: 'border-emerald-100',
+    },
+    {
+      label: 'Assigned Fields',
+      value: activityData.fieldsCount,
+      icon: MapPin,
+      color: 'text-blue-600',
+      bgColor: 'bg-blue-50',
+      borderColor: 'border-blue-100',
+    },
+    {
+      label: 'Completion Rate',
+      value: `${activityData.completionRate}%`,
+      icon: CheckCircle,
+      color: 'text-black-600',
+      bgColor: 'bg-purple-50',
+      borderColor: 'border-purple-100',
+      suffix: '',
+    },
+    {
+      label: 'Last Login',
+      value: activityData.lastLogin ? getRelativeTime(activityData.lastLogin) : 'First visit',
+      icon: Clock,
+      color: 'text-blue-900',
+      bgColor: 'bg-amber-50',
+      borderColor: 'border-amber-100',
+      isDate: true,
+    },
+  ];
+
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
-      <button
-        onClick={() => router.back()}
-        className="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700"
-      >
-        <ArrowLeft className="w-4 h-4" />
-        Back
-      </button>
+    <div className="min-h-screen bg-linear-to-b from-gray-90 to-gray-300">
+      <div className="max-w-5xl mx-auto px-4 py-6 sm:px-4 lg:px-6 space-y-4">
+        <button
+          onClick={() => router.back()}
+          className="flex items-center gap-1 text-sm text-primary font-semibold transition-colors"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          Back
+        </button>
 
-      {/* Header Card */}
-      <div className="bg-white border border-gray-200 rounded-2xl p-6">
-        <div className="flex flex-col sm:flex-row gap-6 items-center">
-          {/* Avatar */}
-          <div className="relative">
-            <div className="w-24 h-24 rounded-2xl bg-gray-100 flex items-center justify-center text-2xl font-semibold overflow-hidden">
-              {displayAvatar ? (
-                <Image
-                  src={displayAvatar}
-                  alt="Avatar"
-                  width={96}
-                  height={96}
-                  className="object-cover w-full h-full"
-                  unoptimized
-                  loading="eager"
-                />
-              ) : (
-                <span className="text-3xl">{user?.full_name?.charAt(0) || 'U'}</span>
-              )}
-            </div>
-
-            <button
-              onClick={() => fileInputRef.current?.click()}
-              disabled={uploadingAvatar}
-              className="absolute -bottom-2 -right-2 bg-white border rounded-full p-1.5 shadow hover:bg-gray-50 transition-colors"
-            >
-              <Camera className="w-4 h-4 text-gray-600" />
-            </button>
-
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/*"
-              hidden
-              onChange={handleAvatarUpload}
-            />
-          </div>
-
-          {/* Info */}
-          <div className="flex-1 text-center sm:text-left">
-            {isEditing ? (
-              <div className="space-y-1">
+        {/* Header */}
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+          <div className="p-6 sm:p-8">
+            <div className="flex flex-col md:flex-row gap-8 items-center md:items-start">
+              
+              {/* Avatar Section */}
+              <div className="relative shrink-0">
+                <div className="w-28 h-28 rounded-2xl bg-linear-to-br from-primary/10 to-primary/5 flex items-center justify-center text-3xl font-semibold overflow-hidden ring-4 ring-white shadow-md">
+                  {displayAvatar ? (
+                    <Image
+                      src={displayAvatar}
+                      alt="Avatar"
+                      width={112}
+                      height={112}
+                      className="object-cover w-full h-full"
+                      unoptimized
+                      loading="eager"
+                    />
+                  ) : (
+                    <span className="text-4xl font-bold text-primary">
+                      {user?.full_name?.charAt(0) || 'U'}
+                    </span>
+                  )}
+                </div>
+                <button
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={uploadingAvatar}
+                  className="absolute -bottom-1 -right-1 bg-white rounded-full p-1.5 shadow-md border border-gray-300 hover:shadow-lg transition-all"
+                >
+                  <Camera className="w-4 h-4 text-gray-500" />
+                </button>
                 <input
-                  value={fullName}
-                  onChange={(e) => {
-                    setFullName(e.target.value);
-                    if (nameError) setNameError('');
-                  }}
-                  className={`text-lg font-semibold border-b focus:outline-none focus:border-primary ${
-                    nameError ? 'border-red-400' : 'border-gray-300'
-                  }`}
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  hidden
+                  onChange={handleAvatarUpload}
                 />
-                {nameError && <p className="text-xs text-red-500">{nameError}</p>}
               </div>
-            ) : (
-              <h1 className="text-lg font-semibold text-gray-900">{user?.full_name}</h1>
-            )}
 
-            <p className="text-sm text-gray-500 mt-1">{user?.email}</p>
+              {/* User Info */}
+              <div className="flex-1 text-center md:text-left">
+                {isEditing ? (
+                  <div className="space-y-2">
+                    <input
+                      value={fullName}
+                      onChange={(e) => {
+                        setFullName(e.target.value);
+                        if (nameError) setNameError('');
+                      }}
+                      className={`text-xl font-semibold border-b-2 focus:outline-none focus:border-primary px-1 ${
+                        nameError ? 'border-red-400' : 'border-gray-300'
+                      }`}
+                      placeholder="Full name"
+                    />
+                    {nameError && <p className="text-xs text-red-500">{nameError}</p>}
+                  </div>
+                ) : (
+                  <h1 className="text-xl font-bold text-gray-900">{user?.full_name}</h1>
+                )}
+                
+                <p className="text-sm text-gray-500 mt-1.5">{user?.email}</p>
+                
+                <div className="mt-3">
+                  <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-full ${
+                    isAdmin 
+                      ? 'bg-primary/10 text-primary' 
+                      : 'bg-blue-50 text-blue-600'
+                  }`}>
+                    {isAdmin ? 'Administrator' : 'Field Agent'}
+                  </span>
+                </div>
+              </div>
 
-            <p className="text-xs mt-2 text-gray-400">
-              {isAdmin ? 'Administrator' : 'Field Agent'}
-            </p>
+              {/* Actions */}
+              <div className="shrink-0">
+                {isEditing ? (
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        setIsEditing(false);
+                        setFullName(user?.full_name || '');
+                        setAvatarUrl(user?.avatar_url || '');
+                        setNameError('');
+                      }}
+                    >
+                      Cancel
+                    </Button>
+                    <Button size="sm" onClick={handleUpdateProfile} loading={updating}>
+                      Save Changes
+                    </Button>
+                  </div>
+                ) : (
+                  <Button
+                    size="sm"
+                    onClick={() => {
+                      setFullName(user?.full_name || '');
+                      setAvatarUrl(user?.avatar_url || '');
+                      setIsEditing(true);
+                    }}
+                  >
+                    Edit Profile
+                  </Button>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Activity Summary*/}
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+          <div className="px-6 py-4 border-b border-gray-100 bg-gray-50/50">
+            <div className="flex items-center gap-2.5">
+              <div className="p-1.5  rounded-lg">
+                <Activity className="w-4 h-4 text-primary" />
+              </div>
+              <span className="text-sm font-semibold text-gray-900">Activity Summary</span>
+            </div>
           </div>
 
-          {/* Actions */}
-          {isEditing ? (
-            <div className="flex gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => {
-                  setIsEditing(false);
-                  setFullName(user?.full_name || '');
-                  setAvatarUrl(user?.avatar_url || '');
-                  setNameError('');
-                }}
-              >
-                Cancel
-              </Button>
-              <Button size="sm" onClick={handleUpdateProfile} loading={updating}>
-                <Check className="w-3 h-3 mr-1" />
-                Save
-              </Button>
+          {loadingActivity ? (
+            <div className="p-12 text-center">
+              <Spinner size="md" />
             </div>
           ) : (
-            <Button
-              size="sm"
-              onClick={() => {
-                setFullName(user?.full_name || '');
-                setAvatarUrl(user?.avatar_url || '');
-                setIsEditing(true);
-              }}
-            >
-              Edit
-            </Button>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 p-6">
+              {activityItems.map((item, idx) => {
+                const Icon = item.icon;
+                return (
+                  <div
+                    key={idx}
+                    className={`rounded-xl border ${item.borderColor} ${item.bgColor} p-4 transition-all hover:shadow-md`}
+                  >
+                    <div className="flex items-start justify-between">
+                      <div>
+                        <p className="text-xs font-medium text-gray-700 uppercase tracking-wide">
+                          {item.label}
+                        </p>
+                        <p className={`text-xl font-bold mt-2 ${item.color}`}>
+                          {item.value}
+                        </p>
+                      </div>
+                      <div className={`p-2 rounded-lg bg-white/60 ${item.color}`}>
+                        <Icon className="w-4 h-4" />
+                      </div>
+                    </div>
+                    {!item.isDate && item.label !== 'Completion Rate' && (
+                      <div className="mt-3 pt-2 border-t border-white/50">
+                        <p className="text-xs text-gray-500">
+                          {item.label === 'Field Updates' 
+                            ? `${Math.min(100, Math.round((activityData.updatesCount / (activityData.fieldsCount * 4 || 1)) * 100))}% of expected`
+                            : item.label === 'Assigned Fields'
+                            ? `${activityData.fieldsCount} active field${activityData.fieldsCount !== 1 ? 's' : ''}`
+                            : ''}
+                        </p>
+                      </div>
+                    )}
+                    {item.label === 'Completion Rate' && (
+                      <div className="mt-3">
+                        <div className="w-full bg-white/50 rounded-full h-1.5 overflow-hidden">
+                          <div 
+                            className="bg-black h-full rounded-full transition-all duration-500"
+                            style={{ width: `${activityData.completionRate}%` }}
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
           )}
         </div>
-      </div>
 
-      {/* Security */}
-      <div className="bg-white border border-gray-200 rounded-2xl">
-        <div className="p-4 border-b flex justify-between items-center">
-          <div className="flex items-center gap-2">
-            <Key className="w-4 h-4 text-gray-500" />
-            <span className="text-sm font-medium text-gray-900">Security</span>
+        {/* Security Section */}
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+          <div className="px-6 py-4 border-b border-gray-100 bg-gray-50/50">
+            <div className="flex items-center gap-2.5">
+              <div className="p-1.5 rounded-lg">
+                <Key className="w-4 h-4 text-primary" />
+              </div>
+              <span className="text-sm font-semibold text-gray-900">Security</span>
+            </div>
           </div>
-          {!showPasswordForm && (
-            <Button variant="outline" size="xs" onClick={() => setShowPasswordForm(true)}>
-              Change Password
-            </Button>
-          )}
-        </div>
 
-        {showPasswordForm && (
-          <div className="p-4 space-y-3">
-            <input
-              type="password"
-              placeholder="Current password"
-              value={currentPassword}
-              onChange={(e) => setCurrentPassword(e.target.value)}
-              className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:border-primary focus:outline-none"
-            />
-            <input
-              type="password"
-              placeholder="New password (min 8 characters)"
-              value={newPassword}
-              onChange={(e) => setNewPassword(e.target.value)}
-              className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:border-primary focus:outline-none"
-            />
-            <input
-              type="password"
-              placeholder="Confirm new password"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:border-primary focus:outline-none"
-            />
-
-            {passwordError && <p className="text-xs text-red-500">{passwordError}</p>}
-            {passwordSuccess && <p className="text-xs text-green-600">{passwordSuccess}</p>}
-
-            <div className="flex justify-end gap-2 pt-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => {
+          <div className="p-6">
+            {!showPasswordForm ? (
+              <div className="flex justify-between items-center flex-wrap gap-4">
+                <div>
+                  <p className="text-sm font-medium text-gray-900">Password</p>
+                </div>
+                <Button variant="outline" size="sm" onClick={() => setShowPasswordForm(true)}>
+                  Change Password
+                </Button>
+              </div>
+            ) : (
+              <PasswordChangeForm
+                onSubmit={handleChangePassword}
+                onCancel={() => {
                   setShowPasswordForm(false);
-                  setPasswordError('');
-                  setCurrentPassword('');
-                  setNewPassword('');
-                  setConfirmPassword('');
                 }}
-              >
-                Cancel
-              </Button>
-              <Button size="sm" onClick={handleChangePassword} loading={changingPassword}>
-                Update Password
-              </Button>
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* Activity */}
-      <div className="bg-white border border-gray-200 rounded-2xl">
-        <div className="p-4 border-b">
-          <div className="flex items-center gap-2">
-            <Activity className="w-4 h-4 text-gray-500" />
-            <span className="text-sm font-medium text-gray-900">Activity Summary</span>
+                loading={changingPassword}
+              />
+            )}
           </div>
         </div>
 
-        {loadingActivity ? (
-          <div className="p-8 text-center">
-            <Spinner size="sm" />
+        {/* Account Information */}
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+          <div className="px-6 py-4 border-b border-gray-100 bg-gray-50/50">
+            <h2 className="text-sm font-semibold text-gray-900">Account Information</h2>
           </div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-3 divide-y sm:divide-y-0 sm:divide-x divide-gray-100">
-            <div className="p-5 text-center">
-              <p className="text-2xl font-bold text-gray-900">{activityData.updatesCount}</p>
-              <p className="text-xs text-gray-500 mt-1">Field Updates</p>
+          <div className="p-6 grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <div className="space-y-1">
+              <p className="text-xs font-medium text-gray-400 uppercase tracking-wide">Full Name</p>
+              <p className="text-sm text-gray-900">{user?.full_name}</p>
             </div>
-            <div className="p-5 text-center">
-              <p className="text-2xl font-bold text-gray-900">{activityData.fieldsCount}</p>
-              <p className="text-xs text-gray-500 mt-1">Assigned Fields</p>
+            <div className="space-y-1">
+              <p className="text-xs font-medium text-gray-400 uppercase tracking-wide">Email Address</p>
+              <p className="text-sm text-gray-900">{user?.email}</p>
             </div>
-            <div className="p-5 text-center">
-              <p className="text-sm font-medium text-gray-700">
-                {activityData.lastLogin ? getRelativeTime(activityData.lastLogin) : 'First visit'}
-              </p>
-              <p className="text-xs text-gray-500 mt-1">Last Login</p>
+            <div className="space-y-1">
+              <p className="text-xs font-medium text-gray-400 uppercase tracking-wide">Role</p>
+              <p className="text-sm text-gray-900">{isAdmin ? 'Administrator' : 'Field Agent'}</p>
+            </div>
+            <div className="space-y-1">
+              <p className="text-xs font-medium text-gray-400 uppercase tracking-wide">Member Since</p>
+              <p className="text-sm text-gray-900">{formatDate(user?.created_at)}</p>
             </div>
           </div>
-        )}
-      </div>
+        </div>
 
-      {/* Account Details */}
-      <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden">
-        <div className="px-6 py-4 border-b border-gray-100">
-          <h2 className="text-sm font-medium text-gray-900">Account Information</h2>
-        </div>
-        <div className="p-6 grid sm:grid-cols-2 gap-6">
-          <div>
-            <p className="text-xs text-gray-400 uppercase tracking-wide">Full Name</p>
-            <p className="text-sm font-medium text-gray-900 mt-1">{user?.full_name}</p>
+        {/* Danger Zone */}
+        <div className="bg-white rounded-2xl shadow-sm border border-red-100 overflow-hidden">
+          <div className="px-6 py-4 border-b border-red-100 bg-red-50/30">
+            <h2 className="text-sm font-semibold text-red-700">Danger Zone</h2>
           </div>
-          <div>
-            <p className="text-xs text-gray-400 uppercase tracking-wide">Email</p>
-            <p className="text-sm font-medium text-gray-900 mt-1">{user?.email}</p>
+          <div className="p-6 flex justify-between items-center flex-wrap gap-4">
+            <div>
+              <p className="text-sm font-medium text-gray-900">Log out of account</p>
+            </div>
+            <Button variant="danger" size="sm" onClick={logout} icon={<LogOut className="w-4 h-4" />}>
+              Logout
+            </Button>
           </div>
-          <div>
-            <p className="text-xs text-gray-400 uppercase tracking-wide">Role</p>
-            <p className="text-sm font-medium text-gray-900 mt-1">{isAdmin ? 'Administrator' : 'Field Agent'}</p>
-          </div>
-          <div>
-            <p className="text-xs text-gray-400 uppercase tracking-wide">Joined</p>
-            <p className="text-sm font-medium text-gray-900 mt-1">{formatDate(user?.created_at)}</p>
-          </div>
-        </div>
-      </div>
-
-      {/* Danger Zone */}
-      <div className="bg-white border border-red-200 rounded-2xl overflow-hidden">
-        <div className="px-6 py-4 border-b border-red-100 bg-red-50/30">
-          <h2 className="text-sm font-medium text-red-700">Danger Zone</h2>
-        </div>
-        <div className="p-6 flex justify-between items-center">
-          <div>
-            <p className="text-sm font-medium text-gray-900">Log out of account</p>
-            <p className="text-xs text-gray-500 mt-0.5">Sign out from this device</p>
-          </div>
-          <Button variant="danger" size="sm" onClick={logout}>
-            Logout
-          </Button>
         </div>
       </div>
     </div>

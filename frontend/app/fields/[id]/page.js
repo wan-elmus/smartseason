@@ -115,7 +115,7 @@ export default function FieldDetailPage() {
     <div className="max-w-5xl mx-auto space-y-8">
       <button
         onClick={() => router.push('/fields')}
-        className="flex items-center gap-1 text-sm text-primary font-semibold hover:text-primary-dark transition-colors"
+        className="flex items-center gap-1 text-sm text-primary font-semibold transition-colors"
       >
         <ArrowLeft className="w-4 h-4" />
         Back

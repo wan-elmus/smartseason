@@ -18,9 +18,8 @@ export default function AtRiskFieldsTable({ fields, maxDisplay = 5, onViewAll })
 
   return (
     <div className="overflow-x-auto">
-      {/* 👇 enforce minimum table width for proper spacing */}
-      <table className="min-w-[720px] w-full text-sm">
-        <thead className="bg-gray-50 border-b border-gray-200">
+      <table className="min-w-180 w-full text-sm">
+        <thead className="bg-gray-50 border-b border-gray-300">
           <tr>
             <th className="text-left px-4 py-3 text-xs font-semibold text-gray-700 uppercase whitespace-nowrap">
               Field Name

@@ -39,7 +39,7 @@ export default function LoginPage() {
         {/* Login Card with Distinct Shadow */}
         <div className="bg-white rounded-xl shadow-xl shadow-gray-300/50 border border-gray-100 overflow-hidden">
           <div className="px-6 pt-6 pb-2">
-            <p className="text-center text-sm text-gray-500 mt-0.5">Sign in to continue to your dashboard</p>
+            <p className="text-center text-sm text-gray-500 mt-0.5">Sign in to your dashboard</p>
           </div>
           <div className="p-6 pt-4">
             <LoginForm />

@@ -106,6 +106,6 @@ SmartSeason is a full-stack field monitoring system that enables agricultural or
 
 ## Architecture
 
-<div style="display: flex; flex-wrap: wrap; gap: 12px;">
+<div style="display: flex; flex-wrap: wrap; gap: 8px;">
   <img src="./docs/ArchitectureDiagram.png" style="flex: 1 1 300px; max-width: 100%; border-radius: 8px;" />
 </div>

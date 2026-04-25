@@ -318,9 +318,9 @@ The status is **computed on-demand** rather than stored, ensuring real-time accu
 ### Database Design
 
 ```sql
-1. Unique constraint on field_assignments.field_id (one field → one agent)
+1. Unique constraint on field_assignments.field_id (one field to one agent)
 2. Cascade delete for assignments when field is deleted
-3. Indexes on frequently queried columns (email, role, field_id, agent_id)
+3. Indexes on frequently queried columns
 4. Soft delete not implemented for simplicity (hard delete is sufficient)
 ```
 

@@ -21,9 +21,19 @@ async def upload_image(
 ):
     """Upload an image file and return its URL."""
     
+    logger.info(f"Received file: {file.filename}, content_type: {file.content_type}, size from client")
+    
     allowed_types = ["image/jpeg", "image/png", "image/jpg", "image/webp"]
     if file.content_type not in allowed_types:
-        raise HTTPException(status_code=400, detail="Invalid file type. Only JPEG, PNG, WebP allowed.")
+        logger.warning(f"Invalid content type: {file.content_type}")
+        raise HTTPException(status_code=400, detail=f"Invalid file type. Got {file.content_type}, expected JPEG, PNG, or WebP.")
+    
+    try:
+        first_bytes = await file.read(1024)
+        await file.seek(0)
+    except Exception as e:
+        logger.error(f"Failed to read file: {e}")
+        raise HTTPException(status_code=400, detail="Could not read file")
     
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     safe_filename = f"{timestamp}_{current_user.id}_{file.filename.replace(' ', '_')}"
@@ -38,4 +48,5 @@ async def upload_image(
     
     image_url = f"http://{settings.SERVER_HOST}:{settings.SERVER_PORT}/uploads/{safe_filename}"
     
+    logger.info(f"File saved successfully: {image_url}")
     return {"image_url": image_url, "filename": safe_filename}

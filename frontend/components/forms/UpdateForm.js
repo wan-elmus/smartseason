@@ -1,10 +1,12 @@
 'use client';
+
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Button from '@/components/ui/Button';
 import { Upload, X } from 'lucide-react';
 import apiClient from '@/lib/api';
 import { ROUTES } from '@/lib/routes';
+import { getProxiedImageUrl } from '@/lib/imageProxy';
 
 const STAGES = [
   'Planted',
@@ -27,10 +29,11 @@ export default function UpdateForm({
     notes: '',
     image_url: '',
   });
+
   const [uploading, setUploading] = useState(false);
   const [imagePreview, setImagePreview] = useState(null);
 
-  // Cleanup preview URL
+  // cleanup preview
   useEffect(() => {
     return () => {
       if (imagePreview) URL.revokeObjectURL(imagePreview);
@@ -41,6 +44,16 @@ export default function UpdateForm({
     const file = e.target.files?.[0];
     if (!file) return;
 
+    // validation
+    if (!file.type.startsWith('image/')) {
+      return alert('Invalid image file');
+    }
+
+    if (file.size > 2 * 1024 * 1024) {
+      return alert('Image must be under 2MB');
+    }
+
+    // local preview
     const previewUrl = URL.createObjectURL(file);
     setImagePreview(previewUrl);
 
@@ -52,12 +65,14 @@ export default function UpdateForm({
       const response = await apiClient.post(ROUTES.UPLOAD_IMAGE, uploadData, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
+
       setFormData((prev) => ({
         ...prev,
         image_url: response.data.image_url,
       }));
     } catch (error) {
       console.error('Upload failed:', error);
+      alert('Upload failed');
     } finally {
       setUploading(false);
     }
@@ -74,15 +89,22 @@ export default function UpdateForm({
     onSubmit(formData);
   };
 
+  const proxiedImage = getProxiedImageUrl(formData.image_url);
+
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
+
       {/* Stage */}
       <div>
-        <label className="block text-xs font-semibold text-gray-700 mb-2">Growth Stage</label>
+        <label className="block text-xs font-semibold text-gray-700 mb-2">
+          Growth Stage
+        </label>
         <select
           value={formData.new_stage}
-          onChange={(e) => setFormData({ ...formData, new_stage: e.target.value })}
-          className="w-full px-4 py-3 text-base border border-gray-200 rounded-3xl focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 transition-all"
+          onChange={(e) =>
+            setFormData({ ...formData, new_stage: e.target.value })
+          }
+          className="w-full px-4 py-3 text-base border border-gray-200 rounded-2xl focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
           required
         >
           {STAGES.map((stage) => (
@@ -95,22 +117,30 @@ export default function UpdateForm({
 
       {/* Notes */}
       <div>
-        <label className="block text-xs font-semibold text-gray-700 mb-2">Observations / Notes</label>
+        <label className="block text-xs font-semibold text-gray-700 mb-2">
+          Observations / Notes
+        </label>
         <textarea
           value={formData.notes}
-          onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-          className="w-full px-4 py-3 text-base border border-gray-200 rounded-3xl focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 min-h-[120px] transition-all"
-          placeholder="Describe crop health, pest issues, weather conditions..."
-          rows={4}
+          onChange={(e) =>
+            setFormData({ ...formData, notes: e.target.value })
+          }
+          className="w-full px-4 py-3 text-base border border-gray-200 rounded-2xl focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 min-h-30"
+          placeholder="Describe crop health, pests, weather..."
         />
       </div>
 
-      {/* Image Upload – endpoint is used here (ROUTES.UPLOAD_IMAGE) */}
+      {/* Image Upload */}
       <div>
-        <label className="block text-xs font-semibold text-gray-700 mb-2">Photo (Optional)</label>
+        <label className="block text-xs font-semibold text-gray-700 mb-2">
+          Photo (Optional)
+        </label>
+
         <div className="flex items-center gap-4">
+
+          {/* Upload Button */}
           <label
-            className={`flex-1 flex items-center justify-center gap-x-3 px-5 py-4 text-sm border border-gray-200 rounded-3xl cursor-pointer hover:bg-gray-50 transition-colors ${
+            className={`flex-1 flex items-center justify-center gap-x-3 px-5 py-4 text-sm border border-gray-200 rounded-2xl cursor-pointer hover:bg-gray-50 ${
               uploading ? 'opacity-50 pointer-events-none' : ''
             }`}
           >
@@ -118,6 +148,7 @@ export default function UpdateForm({
             <span className="font-medium text-gray-700">
               {uploading ? 'Uploading…' : 'Upload Image'}
             </span>
+
             <input
               type="file"
               accept="image/*"
@@ -127,25 +158,33 @@ export default function UpdateForm({
             />
           </label>
 
-          {imagePreview && (
-            <div className="relative w-16 h-16 flex-shrink-0">
+          {/* Preview */}
+          {(imagePreview || proxiedImage) && (
+            <div className="relative w-24 h-24 shrink-0">
+
               <Image
-                src={imagePreview}
+                src={imagePreview || proxiedImage}
                 alt="Preview"
                 fill
-                sizes="64px"
-                className="object-cover rounded-3xl border border-gray-200"
+                sizes="96px"
+                className="object-cover rounded-xl border border-gray-200"
               />
+
               <button
                 type="button"
                 onClick={removeImage}
-                className="absolute -top-1 -right-1 bg-red-500 text-white rounded-2xl p-1 hover:bg-red-600 transition-colors"
+                className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
               >
                 <X className="w-3 h-3" />
               </button>
             </div>
           )}
         </div>
+
+        {/* Hint */}
+        <p className="text-xs text-gray-400 mt-2">
+          Recommended: 1280×960px (4:3), max 2MB
+        </p>
       </div>
 
       {/* Actions */}
@@ -153,7 +192,13 @@ export default function UpdateForm({
         <Button type="button" variant="secondary" size="sm" onClick={onCancel}>
           Cancel
         </Button>
-        <Button type="submit" variant="primary" size="sm" loading={loading || uploading}>
+
+        <Button
+          type="submit"
+          variant="primary"
+          size="sm"
+          loading={loading || uploading}
+        >
           Submit Update
         </Button>
       </div>

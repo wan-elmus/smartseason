@@ -22,22 +22,28 @@ import {
 } from 'lucide-react';
 
 export default function AdminDashboardPage() {
-  const { isAdmin, isLoading } = useAuthHook();
+  const { user, isAdmin, isLoading } = useAuthHook();
   const router = useRouter();
   const [dashboardData, setDashboardData] = useState(null);
   const [trendData, setTrendData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [loadingTrend, setLoadingTrend] = useState(true);
 
-  // Redirect non-admin users
+  // Redirect non-admin users - wait for auth to load first
   useEffect(() => {
-    if (!isLoading && !isAdmin) {
-      router.replace('/dashboard/agent');
+    if (!isLoading) {
+      if (!user) {
+        router.replace('/login');
+      } else if (!isAdmin) {
+        router.replace('/dashboard/agent');
+      }
     }
-  }, [isAdmin, isLoading, router]);
+  }, [isAdmin, isLoading, router, user]);
 
-  // Fetch dashboard data
+  // Fetch dashboard data - only if admin
   useEffect(() => {
+    if (!isAdmin || isLoading) return;
+    
     const controller = new AbortController();
     
     const fetchDashboard = async () => {
@@ -57,10 +63,12 @@ export default function AdminDashboardPage() {
     
     fetchDashboard();
     return () => controller.abort();
-  }, []);
+  }, [isAdmin, isLoading]);
 
-  // Fetch trend data
+  // Fetch trend data - only if admin
   useEffect(() => {
+    if (!isAdmin || isLoading) return;
+    
     const controller = new AbortController();
     
     const fetchTrends = async () => {
@@ -87,15 +95,20 @@ export default function AdminDashboardPage() {
     
     fetchTrends();
     return () => controller.abort();
-  }, []);
+  }, [isAdmin, isLoading]);
 
   // Loading state
-  if (loading || isLoading || loadingTrend) {
+  if (isLoading || loading || loadingTrend) {
     return (
       <div className="flex items-center justify-center h-64">
         <Spinner size="lg" />
       </div>
     );
+  }
+
+  // Don't render if not admin (prevents flash)
+  if (!isAdmin) {
+    return null;
   }
 
   // Calculate metrics
@@ -125,7 +138,7 @@ export default function AdminDashboardPage() {
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-xl font-semibold text-gray-900">Dashboard</h1>
-          <p className="text-sm text-gray-500 mt-0.5">System-wide field monitoring overview</p>
+          {/* <p className="text-sm text-gray-500 mt-0.5">Field monitoring overview</p> */}
         </div>
         <Button href="/fields" variant="outline" size="sm">
           Manage Fields
@@ -174,7 +187,7 @@ export default function AdminDashboardPage() {
         ].map((item, idx) => (
           <div
             key={idx}
-            className="p-4 bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-md transition-all cursor-pointer"
+            className="p-4 bg-white border border-gray-300 rounded-xl shadow-sm hover:shadow-md transition-all cursor-pointer"
             onClick={() => item.href && router.push(item.href)}
           >
             <div className="flex justify-between items-center">

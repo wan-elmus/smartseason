@@ -10,14 +10,13 @@ import Button from '@/components/ui/Button';
 import Spinner from '@/components/ui/Spinner';
 import FieldForm from '@/components/forms/FieldForm';
 import { getRelativeTime, getStatusStyles } from '@/lib/utils';
-
 import {
-  Calendar,
-  User,
-  ChevronRight,
   Users,
   Plus,
   X,
+  ChevronRight,
+  UserPlus,
+  Trash2,
 } from 'lucide-react';
 
 export default function FieldsPage() {
@@ -27,6 +26,7 @@ export default function FieldsPage() {
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [agents, setAgents] = useState([]);
   const [assigningField, setAssigningField] = useState(null);
+  const [unassigningField, setUnassigningField] = useState(null);
 
   useEffect(() => {
     if (isAdmin) {
@@ -50,6 +50,21 @@ export default function FieldsPage() {
     }
   };
 
+  const handleUnassignField = async (fieldId) => {
+    if (!confirm('Remove agent from this field?')) return;
+    
+    setUnassigningField(fieldId);
+    try {
+      await apiClient.delete(ROUTES.UNASSIGN_FIELD(fieldId));
+      await refetch();
+    } catch (error) {
+      console.error('Failed to unassign:', error);
+      alert('Failed to remove agent');
+    } finally {
+      setUnassigningField(null);
+    }
+  };
+
   if (loading || isLoading) {
     return (
       <div className="flex justify-center h-64">
@@ -60,14 +75,18 @@ export default function FieldsPage() {
 
   return (
     <div className="space-y-8">
-
       {/* Header */}
       <div className="flex justify-between items-end">
-        <h1 className="text-2xl font-semibold text-gray-900">Fields</h1>
+        <div>
+          <h1 className="text-2xl font-semibold text-gray-900">Fields</h1>
+          <p className="text-sm text-gray-500 mt-1">Manage and monitor all fields</p>
+        </div>
 
         {isAdmin && (
           <Button
             onClick={() => setShowCreateForm(!showCreateForm)}
+            variant="primary"
+            size="sm"
             className="flex items-center gap-2"
           >
             <Plus className="w-4 h-4" />
@@ -90,106 +109,111 @@ export default function FieldsPage() {
       <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
         {fields.map((field) => {
           const statusStyle = getStatusStyles(field.computed_status);
+          const hasAgent = field.assigned_agent && field.assigned_agent.full_name;
+          const isUnassigning = unassigningField === field.id;
 
           return (
-            <Link key={field.id} href={`/fields/${field.id}`} className="group">
+            <div key={field.id} className="relative group">
               <div
                 className={`
                   rounded-2xl p-5 bg-white
                   shadow-sm hover:shadow-md
                   ring-1 ring-gray-200
                   transition-all duration-200
-                  hover:-translate-y-0.5
                   ${statusStyle.border} ${statusStyle.bg}
                 `}
               >
-
-                {/* Top */}
-                <div className="flex justify-between items-start">
-                  <div>
-                    <h3 className="text-base font-semibold text-gray-900 group-hover:text-gray-700">
-                      {field.name}
-                    </h3>
-                    <p className="text-sm text-gray-500 mt-0.5">
-                      {field.crop_type}
-                    </p>
+                <Link href={`/fields/${field.id}`} className="block">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <h3 className="text-base font-semibold text-gray-900 group-hover:text-gray-700">
+                        {field.name}
+                      </h3>
+                      <p className="text-sm text-gray-500 mt-0.5">
+                        {field.crop_type}
+                      </p>
+                    </div>
+                    <ChevronRight className="w-4 h-4 text-gray-300 group-hover:text-gray-500" />
                   </div>
 
-                  <ChevronRight className="w-4 h-4 text-gray-300 group-hover:text-gray-500" />
-                </div>
+                  {/* Info */}
+                  <div className="mt-4 space-y-2 text-sm text-gray-600">
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Stage</span>
+                      <span className="font-medium text-gray-800">
+                        {field.current_stage}
+                      </span>
+                    </div>
 
-                {/* Info */}
-                <div className="mt-4 space-y-2 text-sm text-gray-600">
-                  <div className="flex justify-between">
-                    <span className="text-gray-400">Stage</span>
-                    <span className="font-medium text-gray-800">
-                      {field.current_stage}
-                    </span>
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Age</span>
+                      <span>{field.days_since_planting} days</span>
+                    </div>
+
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Last update</span>
+                      <span>
+                        {field.last_update
+                          ? getRelativeTime(field.last_update)
+                          : '—'}
+                      </span>
+                    </div>
                   </div>
+                </Link>
 
-                  <div className="flex justify-between">
-                    <span className="text-gray-400">Age</span>
-                    <span>{field.days_since_planting} days</span>
-                  </div>
-
-                  <div className="flex justify-between">
-                    <span className="text-gray-400">Last update</span>
-                    <span>
-                      {field.last_update
-                        ? getRelativeTime(field.last_update)
-                        : '—'}
-                    </span>
-                  </div>
-                </div>
-
-                {/* 🔥 Assignment (REPLACED + IMPROVED) */}
+                {/* Assignment Section */}
                 {isAdmin && (
                   <div
                     className="mt-4 pt-3 border-t border-gray-100"
                     onClick={(e) => e.stopPropagation()}
                   >
-                    {field.assigned_agent ? (
+                    {hasAgent ? (
                       <div className="flex justify-between items-center text-sm">
                         <div className="flex items-center gap-1.5 text-gray-400">
                           <Users className="w-3.5 h-3.5" />
                           <span>Agent</span>
                         </div>
-
-                        <span className="font-medium text-gray-700">
-                          {field.assigned_agent.full_name?.split(' ')[0] || 'Unknown'}
-                        </span>
+                        <div className="flex items-center gap-2">
+                          <span className="font-medium text-gray-700">
+                            {field.assigned_agent.full_name.split(' ')[0]}
+                          </span>
+                          <button
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              handleUnassignField(field.id);
+                            }}
+                            disabled={isUnassigning}
+                            className="p-1 text-gray-400 hover:text-red-500 transition-colors"
+                            title="Remove agent"
+                          >
+                            {isUnassigning ? (
+                              <div className="w-3.5 h-3.5 border-2 border-red-500 border-t-transparent rounded-full animate-spin" />
+                            ) : (
+                              <Trash2 className="w-3.5 h-3.5" />
+                            )}
+                          </button>
+                        </div>
                       </div>
                     ) : (
                       <div>
-
-                        <Button
-                          size="sm"
-                          variant="primary"
+                        <button
                           onClick={(e) => {
                             e.preventDefault();
+                            e.stopPropagation();
                             setAssigningField(
                               assigningField === field.id ? null : field.id
                             );
                           }}
-                          className="flex items-center gap-1 text-emerald-600 hover:text-emerald-700 px-0"
+                          className="flex items-center gap-1.5 text-sm text-primary hover:text-primary-dark transition-colors"
                         >
-                          {assigningField === field.id ? (
-                            <>
-                              <X className="w-3.5 h-3.5" />
-                              Cancel
-                            </>
-                          ) : (
-                            <>
-                              {/* <Plus className="w-3.5 h-3.5" /> */}
-                              Assign Agent
-                            </>
-                          )}
-                        </Button>
+                          <UserPlus className="w-3.5 h-3.5" />
+                          {assigningField === field.id ? 'Cancel' : 'Assign Agent'}
+                        </button>
 
-                        {/* Dropdown */}
+                        {/* Assign Dropdown */}
                         {assigningField === field.id && (
-                          <div className="mt-3 bg-white rounded-xl p-2 max-h-52 overflow-y-auto border border-gray-200 shadow-sm">
-
+                          <div className="mt-3 bg-white rounded-xl p-2 max-h-52 overflow-y-auto border border-gray-200 shadow-sm z-10 relative">
                             {agents.length === 0 ? (
                               <p className="text-xs text-gray-500 px-2 py-2">
                                 No agents available
@@ -200,6 +224,7 @@ export default function FieldsPage() {
                                   key={agent.id}
                                   onClick={(e) => {
                                     e.preventDefault();
+                                    e.stopPropagation();
                                     handleAssignField(field.id, agent.id);
                                   }}
                                   className="
@@ -218,16 +243,14 @@ export default function FieldsPage() {
                                 </button>
                               ))
                             )}
-
                           </div>
                         )}
                       </div>
                     )}
                   </div>
                 )}
-
               </div>
-            </Link>
+            </div>
           );
         })}
       </div>

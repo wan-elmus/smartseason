@@ -44,7 +44,6 @@ export function useFieldUpdates(fieldId) {
     try {
       const response = await apiClient.post(ROUTES.CREATE_UPDATE(fieldId), updateData);
 
-      // refetch safely
       await fetchUpdates();
 
       if (response.data.id) {
@@ -59,6 +58,21 @@ export function useFieldUpdates(fieldId) {
       return { success: true, data: response.data };
     } catch (err) {
       return { success: false, error: err.userMessage || 'Failed to submit update' };
+    }
+  };
+
+  // NEW: Delete update
+  const deleteUpdate = async (updateId) => {
+    try {
+      await apiClient.delete(ROUTES.DELETE_UPDATE(updateId));
+      await fetchUpdates();
+      return { success: true };
+    } catch (err) {
+      console.error('Delete update error:', err.response?.data || err);
+      return { 
+        success: false, 
+        error: err.userMessage || err.response?.data?.detail || 'Failed to delete update' 
+      };
     }
   };
 
@@ -101,6 +115,7 @@ export function useFieldUpdates(fieldId) {
     stageSuggestion,
     refetch: fetchUpdates,
     submitUpdate,
+    deleteUpdate,
     fetchStageSuggestion,
     uploadImage,
   };

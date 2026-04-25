@@ -42,29 +42,45 @@ export default function ProfilePage() {
   const fileInputRef = useRef(null);
 
   useEffect(() => {
+    if (!user) return;
+    let isMounted = true;
     const fetchActivity = async () => {
       try {
         const [updatesRes, fieldsRes] = await Promise.all([
           apiClient.get(ROUTES.MY_UPDATES).catch(() => ({ data: [] })),
           apiClient.get(ROUTES.MY_FIELDS).catch(() => ({ data: [] })),
         ]);
+        if (!isMounted) return;
 
+        const fieldsCount = fieldsRes.data?.length || 0;
+        const updatesCount = updatesRes.data?.length || 0;
+        
         setActivityData({
           lastLogin: localStorage.getItem('last_login')
             ? new Date(localStorage.getItem('last_login'))
             : null,
-          updatesCount: updatesRes.data?.length || 0,
-          fieldsCount: fieldsRes.data?.length || 0,
+          updatesCount: updatesCount,
+          fieldsCount: fieldsCount,
         });
       } catch (err) {
+        if (!isMounted) return;
         console.error('Failed to fetch activity:', err);
+        setActivityData({
+          lastLogin: localStorage.getItem('last_login')
+            ? new Date(localStorage.getItem('last_login'))
+            : null,
+          updatesCount: 0,
+          fieldsCount: 0,
+        });
       } finally {
         setLoadingActivity(false);
       }
     };
-
     fetchActivity();
-  }, []);
+    return () => {
+      isMounted = false;
+    };
+  }, [user]);
 
   const validateName = (name) => {
     if (!name.trim()) return 'Name is required';
@@ -81,8 +97,8 @@ export default function ProfilePage() {
       alert('Please select an image file');
       return;
     }
-    if (file.size > 2 * 1024 * 1024) {
-      alert('Image must be less than 2MB');
+    if (file.size > 5 * 1024 * 1024) {
+      alert('Image must be less than 5MB');
       return;
     }
 
@@ -91,10 +107,15 @@ export default function ProfilePage() {
 
     setUploadingAvatar(true);
     try {
-      const res = await apiClient.post(ROUTES.UPLOAD_IMAGE, formData);
+      const res = await apiClient.post(ROUTES.UPLOAD_IMAGE, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+        timeout: 50000,
+      });
+      console.log('Upload response:', res.data);
       setAvatarUrl(res.data.image_url);
-    } catch {
-      alert('Failed to upload image');
+    } catch (error){
+      console.error('Upload error:', error.response?.data || error.message);
+      alert(error.response?.data?.detail || 'Failed to upload image');
     } finally {
       setUploadingAvatar(false);
     }
@@ -114,8 +135,9 @@ export default function ProfilePage() {
         avatar_url: avatarUrl,
       });
       setIsEditing(false);
-    } catch {
-      alert('Failed to update profile');
+    } catch (error) {
+      console.error('Update profile error:', error.response?.data || error.message);
+      alert(error.response?.data?.detail || 'Failed to update profile');
     } finally {
       setUpdating(false);
     }
@@ -196,6 +218,7 @@ export default function ProfilePage() {
                   height={96}
                   className="object-cover w-full h-full"
                   unoptimized
+                  loading="eager"
                 />
               ) : (
                 <span className="text-3xl">{user?.full_name?.charAt(0) || 'U'}</span>

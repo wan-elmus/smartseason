@@ -17,15 +17,21 @@ export default function AgentDashboardPage() {
   const [dashboardData, setDashboardData] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Redirect if not agent
+  // Redirect if not agent - wait for auth to load
   useEffect(() => {
-    if (!isLoading && !isAgent) {
-      router.replace('/dashboard/admin');
+    if (!isLoading) {
+      if (!user) {
+        router.replace('/login');
+      } else if (!isAgent) {
+        router.replace('/dashboard/admin');
+      }
     }
-  }, [isAgent, isLoading, router]);
+  }, [isAgent, isLoading, router, user]);
 
-  // Fetch dashboard data
+  // Fetch dashboard data - only if agent
   useEffect(() => {
+    if (!isAgent || isLoading) return;
+    
     const controller = new AbortController();
     
     const fetchDashboard = async () => {
@@ -45,14 +51,19 @@ export default function AgentDashboardPage() {
     
     fetchDashboard();
     return () => controller.abort();
-  }, []);
+  }, [isAgent, isLoading]);
 
-  if (loading || isLoading) {
+  if (isLoading || loading) {
     return (
       <div className="flex items-center justify-center h-64">
         <Spinner size="lg" />
       </div>
     );
+  }
+
+  // Don't render if not agent
+  if (!isAgent) {
+    return null;
   }
 
   const totalFields = dashboardData?.total_fields || 0;

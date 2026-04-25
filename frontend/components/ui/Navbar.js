@@ -41,14 +41,14 @@ export default function Navbar({ onMenuClick }) {
               <div className="relative w-7 h-7 transition-transform group-hover:scale-105">
                 <Image
                   src="/logo.png"
-                  alt="SmartSeason Logo"
+                  alt="SSLogo"
                   width={28}
                   height={28}
                   className="object-contain"
                   priority
                 />
               </div>
-              <span className="font-semibold text-white text-lg tracking-tight">SmartSeason</span>
+              <span className="font-semibold text-white text-xl tracking-tight">SS</span>
             </Link>
           </div>
 

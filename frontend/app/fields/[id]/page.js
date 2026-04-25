@@ -9,13 +9,12 @@ import { ROUTES } from '@/lib/routes';
 import Button from '@/components/ui/Button';
 import Spinner from '@/components/ui/Spinner';
 import UpdateForm from '@/components/forms/UpdateForm';
-
+import { getProxiedImageUrl, isProxiedImage } from '@/lib/imageProxy';
 import {
   formatDate,
   getRelativeTime,
   getStageTheme,
 } from '@/lib/utils';
-
 import {
   ArrowLeft,
   Calendar,
@@ -23,8 +22,8 @@ import {
   MapPin,
   User,
   Lightbulb,
+  Trash2,
 } from 'lucide-react';
-
 import Image from 'next/image';
 
 export default function FieldDetailPage() {
@@ -32,15 +31,17 @@ export default function FieldDetailPage() {
   const router = useRouter();
   const fieldId = parseInt(params.id);
 
-  const { user } = useAuthHook();
+  const { user, isAdmin } = useAuthHook();
 
   const [field, setField] = useState(null);
   const [loading, setLoading] = useState(true);
   const [showUpdateForm, setShowUpdateForm] = useState(false);
+  const [deletingUpdateId, setDeletingUpdateId] = useState(null);
 
   const {
     updates,
     submitUpdate,
+    deleteUpdate,
     stageSuggestion,
     fetchStageSuggestion,
   } = useFieldUpdates(fieldId);
@@ -72,6 +73,23 @@ export default function FieldDetailPage() {
     }
   };
 
+  const handleDeleteUpdate = async (updateId) => {
+    if (!confirm('Are you sure you want to delete this update? This action cannot be undone.')) {
+      return;
+    }
+    
+    setDeletingUpdateId(updateId);
+    const res = await deleteUpdate(updateId);
+    setDeletingUpdateId(null);
+    
+    if (res.success) {
+      const refreshed = await apiClient.get(ROUTES.FIELD_DETAIL(fieldId));
+      setField(refreshed.data);
+    } else {
+      alert(res.error || 'Failed to delete update');
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex justify-center h-64">
@@ -95,34 +113,27 @@ export default function FieldDetailPage() {
 
   return (
     <div className="max-w-5xl mx-auto space-y-8">
-
-      {/* Back */}
       <button
         onClick={() => router.push('/fields')}
-        className="flex items-center gap-1 text-sm text-primary font-semibold hover:bg-primary/30 focus:ring-primary"
+        className="flex items-center gap-1 text-sm text-primary font-semibold hover:text-primary-dark transition-colors"
       >
         <ArrowLeft className="w-4 h-4" />
         Back
       </button>
 
-      {/* HEADER — STAGE-DRIVEN (NO BADGES) */}
       <div className={`rounded-2xl p-6 border ${theme.bg} ${theme.border}`}>
         <div className="flex flex-col sm:flex-row justify-between gap-4">
-          
           <div>
             <h1 className={`text-2xl font-semibold ${theme.text}`}>
               {field.name}
             </h1>
-
             <p className={`text-sm mt-1 ${theme.subtle}`}>
               {field.crop_type} • {field.current_stage}
             </p>
-
             <p className="text-xs text-gray-500 mt-2">
               Status: {field.computed_status}
             </p>
           </div>
-
           {!showUpdateForm && (
             <Button onClick={() => setShowUpdateForm(true)}>
               + Add Update
@@ -131,9 +142,7 @@ export default function FieldDetailPage() {
         </div>
       </div>
 
-      {/* STATS */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        
         <div className="bg-white p-4 rounded-xl ring-1 ring-gray-200 shadow-sm">
           <p className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider">
             Stage
@@ -171,7 +180,6 @@ export default function FieldDetailPage() {
         </div>
       </div>
 
-      {/* LOCATION */}
       {(field.latitude || field.longitude) && (
         <div className="bg-white p-4 rounded-xl ring-1 ring-gray-200 shadow-sm flex items-center gap-2 text-sm">
           <MapPin className="w-4 h-4 text-gray-400" />
@@ -184,7 +192,6 @@ export default function FieldDetailPage() {
         </div>
       )}
 
-      {/* AI */}
       {stageSuggestion?.suggested_stage && (
         <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex gap-3">
           <Lightbulb className="w-5 h-5 text-amber-600 mt-0.5" />
@@ -199,7 +206,6 @@ export default function FieldDetailPage() {
         </div>
       )}
 
-      {/* FORM */}
       {showUpdateForm && (
         <div className="bg-white rounded-2xl p-6 ring-1 ring-gray-200 shadow-sm">
           <UpdateForm
@@ -210,9 +216,7 @@ export default function FieldDetailPage() {
         </div>
       )}
 
-      {/* TIMELINE */}
       <div className="bg-white rounded-2xl ring-1 ring-gray-200 shadow-sm overflow-hidden">
-        
         <div className="px-6 py-4 border-b border-gray-100">
           <h2 className="text-sm font-semibold text-gray-900">
             Update History
@@ -227,45 +231,60 @@ export default function FieldDetailPage() {
           <div className="divide-y divide-gray-100">
             {updates.map((update) => {
               const updateTheme = getStageTheme(update.new_stage);
+              const isDeleting = deletingUpdateId === update.id;
 
               return (
                 <div key={update.id} className="p-6">
-                  
-                  {/* Top */}
                   <div className="flex justify-between items-center mb-3">
-                    <div className="flex items-center gap-3">
-                      
+                    <div className="flex items-center gap-3 flex-wrap">
                       <span className={`text-xs font-semibold ${updateTheme.text}`}>
                         {update.new_stage}
                       </span>
-
                       <span className="text-sm text-gray-500">
                         {formatDate(update.created_at)}
                       </span>
                     </div>
 
-                    <div className="flex items-center gap-1 text-xs text-gray-500">
-                      <User className="w-3.5 h-3.5" />
-                      <span className="font-semibold text-gray-800">
-                        {update.agent_name}
-                      </span>
+                    <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-1 text-xs text-gray-500">
+                        <User className="w-3.5 h-3.5" />
+                        <span className="font-semibold text-gray-800">
+                          {update.agent_name}
+                        </span>
+                      </div>
+                      
+                      {isAdmin && (
+                        <button
+                          onClick={() => handleDeleteUpdate(update.id)}
+                          disabled={isDeleting}
+                          className="p-1 text-gray-400 hover:text-red-500 transition-colors"
+                          title="Delete update"
+                        >
+                          {isDeleting ? (
+                            <div className="w-4 h-4 border-2 border-red-500 border-t-transparent rounded-full animate-spin" />
+                          ) : (
+                            <Trash2 className="w-4 h-4" />
+                          )}
+                        </button>
+                      )}
                     </div>
                   </div>
 
-                  {/* Notes */}
                   {update.notes && (
                     <p className="text-sm text-gray-700 leading-relaxed">
                       {update.notes}
                     </p>
                   )}
 
-                  {/* Image */}
                   {update.image_url && (
                     <div className="mt-4 relative w-full max-w-xs h-40">
                       <Image
-                        src={update.image_url}
+                        src={getProxiedImageUrl(update.image_url)}
                         alt="Field update"
                         fill
+                        unoptimized={isProxiedImage(getProxiedImageUrl(update.image_url))}
+                        loading="eager"
+                        sizes="(max-width: 768px) 100vw, 300px"
                         className="rounded-lg object-cover border border-gray-200"
                       />
                     </div>

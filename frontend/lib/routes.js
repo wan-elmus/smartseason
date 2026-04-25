@@ -15,21 +15,23 @@ export const ROUTES = {
   ME: `${API_BASE}/auth/me`,
   CHANGE_PASSWORD: `${API_BASE}/auth/change-password`,
   MY_UPDATES: `${API_BASE}/updates/my`,
-  MY_FIELDS: `${API_BASE}/fields/agent/assigned`,
+  MY_FIELDS: `${API_BASE}/fields`,
   
   // Users
   USERS_AGENTS: `${API_BASE}/users/agents`,
   USERS_ALL: `${API_BASE}/users`,
   
   // Fields
-  FIELDS: `${API_BASE}/fields`,
+  FIELDS: `${API_BASE}/fields/`,
   FIELD_DETAIL: (id) => `${API_BASE}/fields/${id}`,
   ASSIGN_FIELD: (id) => `${API_BASE}/fields/${id}/assign`,
   AGENT_FIELDS: `${API_BASE}/fields/agent/assigned`,
+  UNASSIGN_FIELD: (id) => `${API_BASE}/fields/${id}/unassign`,
   
   // Updates
   CREATE_UPDATE: (fieldId) => `${API_BASE}/updates/fields/${fieldId}`,
   FIELD_UPDATES: (fieldId) => `${API_BASE}/updates/fields/${fieldId}`,
+  DELETE_UPDATE: (updateId) => `${API_BASE}/updates/${updateId}`,
   
   // Dashboard
   ADMIN_DASHBOARD: `${API_BASE}/dashboard/admin`,

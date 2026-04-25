@@ -32,14 +32,14 @@ export default function LoginPage() {
           <div className="inline-flex items-center justify-center w-16 h-16 bg-linear-to-br from-primary to-primary-dark rounded-2xl shadow-lg mb-4">
             <span className="text-3xl">🌱</span>
           </div>
-          <h1 className="text-2xl font-bold text-gray-800">SmartSeason</h1>
-          <p className="text-sm text-gray-500 mt-1">Field Monitoring System</p>
+          <h1 className="text-3xl font-bold text-gray-800">SmartSeason</h1>
+          <p className="text-lg text-gray-500 mt-1">Field Monitoring System</p>
         </div>
         
         {/* Login Card with Distinct Shadow */}
         <div className="bg-white rounded-xl shadow-xl shadow-gray-300/50 border border-gray-100 overflow-hidden">
           <div className="px-6 pt-6 pb-2">
-            <p className="text-center text-xs text-gray-500 mt-0.5">Sign in to continue to your dashboard</p>
+            <p className="text-center text-sm text-gray-500 mt-0.5">Sign in to continue to your dashboard</p>
           </div>
           <div className="p-6 pt-4">
             <LoginForm />

@@ -9,6 +9,7 @@ class UserBase(BaseModel):
     email: EmailStr
     full_name: str
     role: UserRole = UserRole.AGENT
+    avatar_url: Optional[str] = None
     
 class UserCreate(UserBase):
     password: str = Field(..., min_length=8)
@@ -18,7 +19,7 @@ class UserResponse(UserBase):
     is_active: bool
     created_at: datetime
     updated_at: Optional[datetime] = None
-    avatar_url: Optional[str] = None
+    # avatar_url: Optional[str] = None
     model_config = {"from_attributes": True}
 
 class UserLogin(BaseModel):

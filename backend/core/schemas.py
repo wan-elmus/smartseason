@@ -18,7 +18,6 @@ class UserResponse(UserBase):
     is_active: bool
     created_at: datetime
     updated_at: Optional[datetime] = None
-
     model_config = {"from_attributes": True}
 
 class UserLogin(BaseModel):
@@ -26,7 +25,6 @@ class UserLogin(BaseModel):
     password: str
 
 
-# Token Schemas
 class Token(BaseModel):
     access_token: str
     refresh_token: str
@@ -40,7 +38,6 @@ class TokenPayload(BaseModel):
     role: Optional[str] = None 
 
 
-# Field Schemas
 class FieldBase(BaseModel):
     name: str = Field(..., min_length=1, max_length=100)
     crop_type: str = Field(..., min_length=1, max_length=50)
@@ -63,17 +60,24 @@ class FieldResponse(FieldBase):
     created_by: int
     created_at: datetime
     updated_at: Optional[datetime] = None
-
     model_config = {"from_attributes": True}
 
+
+class AssignedAgent(BaseModel):
+    id: int
+    full_name: str
+    email: EmailStr
+    model_config = {"from_attributes": True}
+
+
 class FieldWithStatus(FieldResponse):
-    computed_status: str  # "Active", "At Risk", "Completed"
+    computed_status: str
     last_update: Optional[datetime] = None
     days_since_planting: Optional[int] = None
     days_since_last_update: Optional[int] = None
+    assigned_agent: Optional[AssignedAgent] = None
 
 
-# Assignment Schemas
 class FieldAssignRequest(BaseModel):
     agent_id: int
 
@@ -82,10 +86,9 @@ class FieldAssignmentResponse(BaseModel):
     field_id: int
     agent_id: int
     assigned_at: datetime
-
     model_config = {"from_attributes": True}
 
-# Update Schemas
+
 class UpdateCreate(BaseModel):
     new_stage: FieldStage
     notes: Optional[str] = None
@@ -100,10 +103,9 @@ class UpdateResponse(BaseModel):
     image_url: Optional[str]
     created_at: datetime
     agent_name: Optional[str] = None
-
     model_config = {"from_attributes": True}
 
-#  Dashboard Schemas
+
 class StatusBreakdown(BaseModel):
     active: int
     at_risk: int
@@ -132,7 +134,6 @@ class AgentDashboardResponse(BaseModel):
     pending_updates_count: int
     recent_updates: List[UpdateResponse]
 
-# AI Schemas
 class AIAlertResponse(BaseModel):
     has_alert: bool
     alert_type: Optional[str] = None

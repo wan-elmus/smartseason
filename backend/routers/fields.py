@@ -7,9 +7,9 @@ from core.database import get_db
 from core.models import Field, FieldAssignment, User
 from core.schemas import (
     FieldCreate, FieldUpdate, FieldResponse, FieldWithStatus,
-    FieldAssignRequest, FieldAssignmentResponse
+    FieldAssignRequest, FieldAssignmentResponse, AssignedAgent
 )
-from core.dependencies import get_current_user, get_current_admin, get_current_agent
+from core.dependencies import get_current_user, get_current_admin
 from constants.user_role import UserRole
 from services.field_status import compute_field_status
 import logging
@@ -34,7 +34,7 @@ async def list_fields(
     
     query = query.options(
         selectinload(Field.updates),
-        selectinload(Field.assignments),
+        selectinload(Field.assignments).selectinload(FieldAssignment.agent),
         selectinload(Field.creator)
     )
     
@@ -51,6 +51,16 @@ async def list_fields(
         if field.updates:
             last_update = max(field.updates, key=lambda u: u.created_at).created_at
         
+        assigned_agent = None
+        if field.assignments:
+            assignment = field.assignments[0]
+            if assignment.agent:
+                assigned_agent = AssignedAgent(
+                    id=assignment.agent.id,
+                    full_name=assignment.agent.full_name,
+                    email=assignment.agent.email
+                )
+        
         response_fields.append(FieldWithStatus(
             id=field.id,
             name=field.name,
@@ -66,6 +76,7 @@ async def list_fields(
             updated_at=field.updated_at,
             latitude=field.latitude,
             longitude=field.longitude,
+            assigned_agent=assigned_agent,
         ))
     
     return response_fields
@@ -81,7 +92,7 @@ async def get_field(
     result = await db.execute(
         select(Field).options(
             selectinload(Field.updates),
-            selectinload(Field.assignments),
+            selectinload(Field.assignments).selectinload(FieldAssignment.agent),
             selectinload(Field.creator)
         ).where(Field.id == field_id)
     )
@@ -105,6 +116,16 @@ async def get_field(
     if field.updates:
         last_update = max(field.updates, key=lambda u: u.created_at).created_at
     
+    assigned_agent = None
+    if field.assignments:
+        assignment = field.assignments[0]
+        if assignment.agent:
+            assigned_agent = AssignedAgent(
+                id=assignment.agent.id,
+                full_name=assignment.agent.full_name,
+                email=assignment.agent.email
+            )
+    
     return FieldWithStatus(
         id=field.id,
         name=field.name,
@@ -120,6 +141,7 @@ async def get_field(
         updated_at=field.updated_at,
         latitude=field.latitude,
         longitude=field.longitude,
+        assigned_agent=assigned_agent,
     )
 
 
@@ -188,17 +210,20 @@ async def assign_field(
     current_user = Depends(get_current_admin),
     db: AsyncSession = Depends(get_db),
 ):
-    """Assign field to agent - ADMIN ONLY. Reassigns if already assigned."""
+    """Assign field to agent - ADMIN ONLY."""
+    # Check field exists
     field_result = await db.execute(select(Field).where(Field.id == field_id))
     if not field_result.scalar_one_or_none():
         raise HTTPException(status_code=404, detail="Field not found")
     
+    # Check agent exists
     agent_result = await db.execute(
         select(User).where(User.id == assignment.agent_id, User.role == UserRole.AGENT, User.is_active == True)
     )
     if not agent_result.scalar_one_or_none():
         raise HTTPException(status_code=404, detail="Agent not found")
     
+    # Remove existing assignment if any
     existing = await db.execute(
         select(FieldAssignment).where(FieldAssignment.field_id == field_id)
     )
@@ -207,6 +232,7 @@ async def assign_field(
         await db.delete(existing_assign)
         await db.flush()
     
+    # Create new assignment
     new_assignment = FieldAssignment(field_id=field_id, agent_id=assignment.agent_id)
     db.add(new_assignment)
     await db.commit()
@@ -215,17 +241,47 @@ async def assign_field(
     return new_assignment
 
 
+@router.delete("/{field_id}/unassign", status_code=status.HTTP_204_NO_CONTENT)
+async def unassign_field(
+    field_id: int,
+    current_user = Depends(get_current_admin),
+    db: AsyncSession = Depends(get_db),
+):
+    """Remove agent assignment from field - ADMIN ONLY."""
+    # Check field exists
+    field_result = await db.execute(select(Field).where(Field.id == field_id))
+    if not field_result.scalar_one_or_none():
+        raise HTTPException(status_code=404, detail="Field not found")
+    
+    # Find and delete assignment
+    assignment_result = await db.execute(
+        select(FieldAssignment).where(FieldAssignment.field_id == field_id)
+    )
+    assignment = assignment_result.scalar_one_or_none()
+    
+    if not assignment:
+        raise HTTPException(status_code=404, detail="No assignment found for this field")
+    
+    await db.delete(assignment)
+    await db.commit()
+    
+    return None
+
+
 @router.get("/agent/assigned", response_model=List[FieldWithStatus])
 async def get_my_assigned_fields(
-    current_user = Depends(get_current_agent),
+    current_user = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
     """Get fields assigned to current agent - AGENT ONLY."""
+    if current_user.role != UserRole.AGENT:
+        raise HTTPException(status_code=403, detail="Agent privileges required")
+    
     subquery = select(FieldAssignment.field_id).where(FieldAssignment.agent_id == current_user.id)
     result = await db.execute(
         select(Field).options(
             selectinload(Field.updates),
-            selectinload(Field.assignments)
+            selectinload(Field.assignments).selectinload(FieldAssignment.agent)
         ).where(Field.id.in_(subquery))
     )
     fields = result.scalars().all()
@@ -236,6 +292,16 @@ async def get_my_assigned_fields(
         last_update = None
         if field.updates:
             last_update = max(field.updates, key=lambda u: u.created_at).created_at
+        
+        assigned_agent = None
+        if field.assignments:
+            assignment = field.assignments[0]
+            if assignment.agent:
+                assigned_agent = AssignedAgent(
+                    id=assignment.agent.id,
+                    full_name=assignment.agent.full_name,
+                    email=assignment.agent.email
+                )
         
         response_fields.append(FieldWithStatus(
             id=field.id,
@@ -252,25 +318,7 @@ async def get_my_assigned_fields(
             updated_at=field.updated_at,
             latitude=field.latitude,
             longitude=field.longitude,
+            assigned_agent=assigned_agent,
         ))
     
     return response_fields
-
-@router.delete("/{field_id}/assign", status_code=status.HTTP_204_NO_CONTENT)
-async def unassign_field(
-    field_id: int,
-    current_user = Depends(get_current_admin),
-    db: AsyncSession = Depends(get_db),
-):
-    """Remove field assignment - ADMIN ONLY."""
-    existing = await db.execute(
-        select(FieldAssignment).where(FieldAssignment.field_id == field_id)
-    )
-    existing_assign = existing.scalar_one_or_none()
-    if not existing_assign:
-        raise HTTPException(status_code=404, detail="No assignment found for this field")
-    
-    await db.delete(existing_assign)
-    await db.commit()
-    
-    return None

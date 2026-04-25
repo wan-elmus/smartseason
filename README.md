@@ -1,4 +1,4 @@
-# 🌾 SmartSeason - Field Monitoring System
+# SmartSeason - Field Monitoring System
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
@@ -8,11 +8,12 @@
 
 > **An agricultural field monitoring system that helps track crop progress across multiple fields during a growing season. Built for both smallholder, large acrage farmers and agribusinesses.**
 
-| Dashboard 1 | Dashboard 2 |
-|------------|------------|
-| ![](./docs/DesktopViewDB.png) | ![](./docs/DesktopViewDB2.png) |
+<div style="display: flex; flex-wrap: wrap; gap: 12px;">
+  <img src="./docs/DesktopViewDB.png" style="flex: 1 1 300px; max-width: 100%; border-radius: 8px;" />
+  <img src="./docs/DesktopViewDB2.png" style="flex: 1 1 300px; max-width: 100%; border-radius: 8px;" />
+</div>
 
-## 📋 Table of Contents
+## Table of Contents
 
 - [Overview](#-overview)
 - [Features](#-features)
@@ -51,6 +52,7 @@ SmartSeason is a full-stack field monitoring system that enables agricultural or
 ## Features
 
 ### For Administrators
+
 - **Field Management**: Create, update, delete, and assign fields to agents
 - **Agent Oversight**: Monitor all field updates across all agents
 - **Analytics Dashboard**: View field status distribution, agent workload, crop distribution, and activity trends
@@ -58,12 +60,14 @@ SmartSeason is a full-stack field monitoring system that enables agricultural or
 - **AI Insights**: View AI-generated alerts and stage recommendations
 
 ### For Field Agents
+
 - **Assigned Fields**: View and manage only fields assigned to them
 - **Field Updates**: Submit stage updates with notes and photos
 - **Personal Dashboard**: Track assigned fields, recent activity, and pending updates
 - **Profile Management**: Update personal information and profile picture
 
 ### General Features
+
 - **JWT Authentication**: Secure token-based authentication with refresh tokens
 - **Avatar Upload**: Profile picture upload with image compression
 - **Password Management**: Secure password change functionality
@@ -76,6 +80,7 @@ SmartSeason is a full-stack field monitoring system that enables agricultural or
 ## Technology Stack
 
 ### Backend
+
 | Technology | Version | Purpose |
 |------------|---------|---------|
 | FastAPI | 0.115.6 | High-performance API framework |
@@ -87,6 +92,7 @@ SmartSeason is a full-stack field monitoring system that enables agricultural or
 | Uvicorn | 0.34.0 | ASGI server |
 
 ### Frontend
+
 | Technology | Version | Purpose |
 |------------|---------|---------|
 | Next.js | 14.2.0 | React framework with App Router |

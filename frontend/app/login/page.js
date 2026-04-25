@@ -18,18 +18,18 @@ export default function LoginPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
-        <Spinner size="lg" />
+      <div className="flex items-center justify-center min-h-screen bg-linear-to-br from-gray-50 to-gray-100">
+        {/* <Spinner size="lg" /> */}
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200 px-4">
+    <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-gray-100 to-gray-200 px-4">
       <div className="w-full max-w-md">
         {/* Logo/Brand Section */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-primary to-primary-dark rounded-2xl shadow-lg mb-4">
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-linear-to-br from-primary to-primary-dark rounded-2xl shadow-lg mb-4">
             <span className="text-3xl">🌱</span>
           </div>
           <h1 className="text-2xl font-bold text-gray-800">SmartSeason</h1>

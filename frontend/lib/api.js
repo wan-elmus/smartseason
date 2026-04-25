@@ -120,7 +120,7 @@ apiClient.interceptors.response.use(
       }
     }
 
-    // Handle 403 Forbidden (Admin only pages accessed by agent)
+    // Handle 403 Forbidden
     if (error.response?.status === 403) {
       return Promise.reject({
         ...error,

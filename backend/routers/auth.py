@@ -108,19 +108,6 @@ async def get_current_user_info(
     """Get current authenticated user's information."""
     return current_user
 
-
-# @router.put("/profile", response_model=UserResponse)
-# async def update_profile(
-#     full_name: str = Body(..., embed=True),
-#     current_user: User = Depends(get_current_user),
-#     db: AsyncSession = Depends(get_db),
-# ):
-#     """Update current user's profile (full name only)."""
-#     current_user.full_name = full_name
-#     await db.commit()
-#     await db.refresh(current_user)
-#     return current_user
-
 @router.post("/change-password")
 async def change_password(
     current_password: str = Body(...),

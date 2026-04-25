@@ -152,3 +152,33 @@ async def get_my_updates(
         )
         for u in updates
     ]
+    
+@router.delete("/{update_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_update(
+    update_id: int,
+    current_user = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Delete a field update - ADMIN ONLY."""
+    if current_user.role != UserRole.ADMIN:
+        raise HTTPException(status_code=403, detail="Admin privileges required")
+    
+    result = await db.execute(
+        select(FieldUpdate).where(FieldUpdate.id == update_id)
+    )
+    update = result.scalar_one_or_none()
+    
+    if not update:
+        raise HTTPException(status_code=404, detail="Update not found")
+    
+    alert_result = await db.execute(
+        select(AIAlert).where(AIAlert.update_id == update_id)
+    )
+    alert = alert_result.scalar_one_or_none()
+    if alert:
+        await db.delete(alert)
+    
+    await db.delete(update)
+    await db.commit()
+    
+    return None

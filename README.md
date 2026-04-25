@@ -8,8 +8,9 @@
 
 > **An agricultural field monitoring system that helps track crop progress across multiple fields during a growing season. Built for both smallholder, large acrage farmers and agribusinesses.**
 
-![Dashboard Preview](./docs/DesktopViewDB.png)
-![Dashboard Preview](./docs/DesktopViewDB2.png)
+| Dashboard 1 | Dashboard 2 |
+|------------|------------|
+| ![](./docs/DesktopViewDB.png) | ![](./docs/DesktopViewDB2.png) |
 
 ## 📋 Table of Contents
 

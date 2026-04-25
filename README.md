@@ -174,8 +174,7 @@ npm install
 cp .env.local.example .env.local
 ```
 
-**For setup assistance of environment variables, please contact me at:**
-**elmuswangudi@gmail.com/+254740268061**
+**For setup assistance of environment variables, please contact me, Details Below**
 
 ### 6. Running Database Migrations
 
@@ -239,8 +238,8 @@ npm run dev
 ```
 
 **Expected output:**
+
 ```
-Next.js 14.2.0
 - Local:        http://localhost:3000
 - Environments: .env.local
 ✓ Ready in 2.3s
@@ -272,8 +271,9 @@ Once the backend is running, access interactive API documentation:
 **For security reasons, full credentials are available upon request. Please contact me directly.**
 
 ### Request Access
-**Email**: elmuswangudi@gmail.com
-**Whatsapp**: +254740268061
+ 
+- **Email**: elmuswangudi@gmail.com
+ - **Whatsapp**: +254740268061
 
 **Please include in your request:**
 - Your name
@@ -368,7 +368,7 @@ The status is **computed on-demand** rather than stored, ensuring real-time accu
 # Screenshots
 
 ### Admin Dashboard
-!| Dashboard View 1 | Dashboard View 2 |
+| Dashboard View 1 | Dashboard View 2 |
 |------------|------------|
 | ![](./docs/DesktopViewDB.png) | ![](./docs/MobileViewDB.png) |
 
@@ -377,31 +377,38 @@ The status is **computed on-demand** rather than stored, ensuring real-time accu
 *Personalized view showing assigned fields and recent activity*
 
 ### Field Management
-<img src="./docs/AdminFields.png" width="49%" />
-<img src="./docs/NewFieldSequence.png" width="49%" />
 
-[Field Details Page](./docs/IndividualPages.png)
 *Grid view of all fields with status indicators and assignment controls*
 
-[Assign Agent Sequence](./docs/AssignAgent.png)
+| ![](./docs/AdminFields.png) | ![](./docs/NewFieldSequence.png) |
+
+
+| ![](./docs/IndividualPages.png) | ![](./docs/AssignAgent.png) |
+
+
 
 ### Agent Fields Overview
+
 [Per-Agent Fields Page](./docs/AgentFields.png)
-| ![Per-Agent Fields Details Page](./docs/AgentFieldDetails.png) | ![](./docs/DetailsPageMobile.png) |
+| ![](./docs/AgentFieldDetails.png) | ![](./docs/DetailsPageMobile.png) |
 ![Recent Agent Field Update](./docs/RecentAgentUpdate.png)
 
 
 ### Field Details
-![Field Details](./docs/field-details.png)
+
 *Detailed view with update history and AI recommendations*
 
+![Field Details](./docs/field-details.png)
+
+
 ### Profile Management
-![Profile Page](./docs/AdminProfile.png)
-![Profile Page](./docs/AdminProfile2.png)
 *User profile with avatar upload and password management*
 
+| ![](./docs/AdminProfile.png) | ![](./docs/AdminProfile2.pngg) |
+
+
 ### Agent Profile
-| ![Agent Profile Page](./docs/AgentProfile.png) | ![](./docs/AgentProfile2.png) |
+![Agent Profile Page](./docs/AgentProfile.png) | ![](./docs/AgentProfile2.png)
 
 ---
 

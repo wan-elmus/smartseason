@@ -380,9 +380,13 @@ The status is **computed on-demand** rather than stored, ensuring real-time accu
 
 *Grid view of all fields with status indicators and assignment controls*
 
+
+| Fields | Add Fields |
+|------------|------------|
 | ![](./docs/AdminFields.png) | ![](./docs/NewFieldSequence.png) |
 
-
+| Detailed Field Page | Assign Agent |
+|------------|------------|
 | ![](./docs/IndividualPages.png) | ![](./docs/AssignAgent.png) |
 
 
@@ -390,7 +394,11 @@ The status is **computed on-demand** rather than stored, ensuring real-time accu
 ### Agent Fields Overview
 
 [Per-Agent Fields Page](./docs/AgentFields.png)
+
+|  Agent Field Page | Field Details |
+|------------|------------|
 | ![](./docs/AgentFieldDetails.png) | ![](./docs/DetailsPageMobile.png) |
+
 ![Recent Agent Field Update](./docs/RecentAgentUpdate.png)
 
 
@@ -402,13 +410,19 @@ The status is **computed on-demand** rather than stored, ensuring real-time accu
 
 
 ### Profile Management
+
 *User profile with avatar upload and password management*
 
+|  Admin Profile 1 | Admin Profile 2 |
+|------------|------------|
 | ![](./docs/AdminProfile.png) | ![](./docs/AdminProfile2.pngg) |
 
 
 ### Agent Profile
-![Agent Profile Page](./docs/AgentProfile.png) | ![](./docs/AgentProfile2.png)
+
+|  Agent Profile 1 | Agent Profile 2 |
+|------------|------------|
+| ![](./docs/AgentProfile.png) | ![](./docs/AgentProfile2.png) |
 
 ---
 

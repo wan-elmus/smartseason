@@ -8,10 +8,10 @@
 
  **An agricultural field monitoring system that helps track crop progress across multiple fields during a growing season. Built for both smallholder, large acrage farmers and agribusinesses.**
 
-<div style="display: flex; flex-wrap: wrap; gap: 12px;">
-  <img src="./docs/DesktopViewDB.png" style="flex: 1 1 300px; max-width: 100%; border-radius: 8px;" />
-  <img src="./docs/DesktopViewDB2.png" style="flex: 1 1 300px; max-width: 100%; border-radius: 8px;" />
-</div>
+| Dashboard View 1 | Dashboard View 2 |
+|------------|------------|
+| ![](./docs/DesktopViewDB.png) | ![](./docs/DesktopViewDB2.png) |
+
 
 ## Table of Contents
 
@@ -368,6 +368,7 @@ The status is **computed on-demand** rather than stored, ensuring real-time accu
 # Screenshots
 
 ### Admin Dashboard
+
 | Dashboard View 1 | Dashboard View 2 |
 |------------|------------|
 | ![](./docs/DesktopViewDB.png) | ![](./docs/MobileViewDB.png) |

@@ -458,14 +458,14 @@ The status is **computed on-demand** rather than stored, ensuring real-time accu
 - Responsive mobile design
 
 ### Future Enhancements
-- [ ] Weather API integration for crop advisories
-- [ ] SMS notifications for at-risk fields
-- [ ] Export reports to PDF/Excel
-- [ ] Multi-language support (English/Swahili)
-- [ ] Offline mode for low-connectivity areas
-- [ ] Advanced ML models for yield prediction
-- [ ] Field boundary mapping with GIS
-- [ ] Mobile app (React Native)
+- Weather API integration for crop advisories
+- SMS notifications for at-risk fields
+- Export reports to PDF/Excel
+- Multi-language support (English/Swahili)
+- Offline mode for low-connectivity areas
+- Advanced ML models for yield prediction
+- Field boundary mapping with GIS
+- Mobile app (React Native)
 
 ---
 

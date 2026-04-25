@@ -18,6 +18,7 @@ class UserResponse(UserBase):
     is_active: bool
     created_at: datetime
     updated_at: Optional[datetime] = None
+    avatar_url: Optional[str] = None
     model_config = {"from_attributes": True}
 
 class UserLogin(BaseModel):

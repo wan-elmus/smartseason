@@ -6,9 +6,9 @@
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.115-green)](https://fastapi.tiangolo.com/)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-14-blue)](https://www.postgresql.org/)
 
-> **A production-ready agricultural field monitoring system that helps track crop progress across multiple fields during a growing season. Built for Kenyan smallholder farmers and agribusinesses.**
+> **An agricultural field monitoring system that helps track crop progress across multiple fields during a growing season. Built for both smallholder, large acrage farmers and agribusinesses.**
 
-![Dashboard Preview](./docs/dashboard-preview.png)
+![Dashboard Preview](./docs/DesktopViewDB.png)
 
 ## 📋 Table of Contents
 

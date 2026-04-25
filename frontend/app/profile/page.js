@@ -407,7 +407,7 @@ export default function ProfilePage() {
                 <div>
                   <p className="text-sm font-medium text-gray-900">Password</p>
                 </div>
-                <Button variant="outline" size="sm" onClick={() => setShowPasswordForm(true)}>
+                <Button variant="primary" size="sm" onClick={() => setShowPasswordForm(true)}>
                   Change Password
                 </Button>
               </div>
